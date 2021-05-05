@@ -40,23 +40,21 @@ deep_lidar_grid_mapping
 
 ## Installation
 
-We suggest to setup a **Python 3.7** virtual environment (e.g. by using _virtualenv_ or _conda_). Inside the virtual environment, users can then use _pip_ to install all package dependencies. The most important packages are _TensorFlow 2.1_
+We suggest to setup a **Python 3.8** virtual environment (e.g. by using _virtualenv_ or _conda_). Inside the virtual environment, users can then use _pip_ to install all package dependencies. The most important packages are _TensorFlow 2.4_, _TensorFlow AddOns 0.12.1_ and [_pypcd_](https://github.com/klintan/pypcd.git#egg=pypcd).
 ```bash
 pip install -r requirements.txt
 ```
 
 ## Data
 
-We provide two synthetic datasets, which can be used to train the neural networks. The datasets are hosted in the [Cam2BEV Data Repository](https://gitlab.ika.rwth-aachen.de/cam2bev/cam2bev-data). Both datasets were used to produce the results presented in our paper:
-- [*Dataset 1_FRLR*](https://gitlab.ika.rwth-aachen.de/cam2bev/cam2bev-data/-/tree/master/1_FRLR): images from four vehicle-mounted cameras, ground-truth BEV image centered above the ego vehicle
-- [*Dataset 2_F*](https://gitlab.ika.rwth-aachen.de/cam2bev/cam2bev-data/-/tree/master/2_F): images from one frontal vehicle camera; ground-truth BEV image left-aligned with ego vehicle
+We provide all data that is required to reproduce the results from our paper. This includes
 
-For more information regarding the data, please refer to the [repository's README](https://gitlab.ika.rwth-aachen.de/cam2bev/cam2bev-data).
+- **Synthetic training and validation data** consisting of lidar point clouds (as *pcd* files) and occupancy grid maps (as *png* files)
+- **Real-world test data** that was recorded with a Velodyne VLP32C lidar sensor
 
-Both datasets can easily be downloaded and extracted by running the provided download script:
-```bash
-./data/download.sh
-```
+Please fill out the form below to get access to the dataset:
+
+<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfok8b0hTS5qXJ3mIVQho2jsGFtJ3kGkmYJX5OeXvYwc2kuzw/viewform?embedded=true" width="400" height="200" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
 
 _**Note**: Download size is approximately 3.7GB, uncompressed size of both datasets is approximately 7.7GB._
 
@@ -64,10 +62,7 @@ _**Note**: Download size is approximately 3.7GB, uncompressed size of both datas
 
 Use the scripts [model/train.py](model/train.py), [model/evaluate.py](model/evaluate.py), and [model/predict.py](model/predict.py) to train a model, evaluate it on validation data, and make predictions on a testing dataset.
 
-Input directories, training parameters, and more can be set via CLI arguments or in a config file. Run the scripts with `--help`-flag or see one of the provided exemplary config files for reference. We provide config files for either one of the networks and datasets:
-- [model/config.1_FRLR.deeplab-mobilenet.yml](model/config.1_FRLR.deeplab-mobilenet.yml)
-
-The following commands will guide you through training _uNetXST_ on _dataset 1_FRLR_.
+Input directories, training parameters, and more can be set via CLI arguments or in a config file. Run the scripts with `--help`-flag or see one of the provided exemplary config files for reference.
 
 ### Training
 
@@ -99,3 +94,8 @@ To actually see the predictions your network makes, try it out on unseen input i
 ```bash
 ./predict.py -c config.1_FRLR.unetxst.yml --model-weights output/<YOUR-TIMESTAMP>/Checkpoints/best_weights.hdf5 --prediction-dir output/<YOUR-TIMESTAMP>/Predictions
 ```
+
+References
+
+[1] [PointPillars: Fast Encoders for Object Detection from Point Clouds, Alex H. Lang and Sourabh Vora and Holger Caesar and Lubing Zhou and Jiong Yang and Oscar Beijbom, 2019.](https://openaccess.thecvf.com/content_CVPR_2019/papers/Lang_PointPillars_Fast_Encoders_for_Object_Detection_From_Point_Clouds_CVPR_2019_paper.pdf)
+
