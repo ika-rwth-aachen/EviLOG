@@ -237,3 +237,40 @@ def rotate_pointcloud(pointcloud, angle):
     pointcloud[:, 0:2] = (rotation @ pointcloud[:, 0:2].T).T
 
     return pointcloud
+
+def naive_geometric_ISM(pcd_file_path,
+                        x_min,
+                        x_max,
+                        y_min,
+                        y_max,
+                        step_size_x,
+                        step_size_y,
+                        z_min_obstacle=-1.0,
+                        z_max_obstacle=0.5):
+    pypcd_pcl = pypcd.PointCloud.from_path(pcd_file_path).pc_data
+    x = pypcd_pcl["x"]
+    y = pypcd_pcl["y"]
+    z = pypcd_pcl["z"]
+    pcl = np.array([x, y, z], dtype=np.float32)
+    pcl = np.transpose(pcl)  # one point per row with columns (x, y, z, i)
+
+    # create image representing naive OGM using a simple geometric inverse sensor model
+    cells_x = int((x_max - x_min) / step_size_x)
+    cells_y = int((y_max - y_min) / step_size_y)
+    center_x = int(-x_min / step_size_x)
+    center_y = int(-y_min / step_size_y)
+    naive_ogm = np.zeros((cells_x, cells_y, 3), dtype=np.uint8)
+    for point in pcl:
+        x, y, z = point[0:3]
+
+        if z_min_obstacle < z < z_max_obstacle and x_min < x < x_max and y_min < y < y_max:
+            x = int((x - x_min) / step_size_x)
+            y = int((y - y_min) / step_size_y)
+            cv2.line(naive_ogm, (cells_y - y, cells_x - x),
+                     (cells_y - center_y, cells_x - center_x), (0, 255, 0),
+                     thickness=1)
+            cv2.circle(naive_ogm, ((cells_y - y, cells_x - x)),
+                       radius=0,
+                       color=(0, 0, 255))
+
+    return naive_ogm
