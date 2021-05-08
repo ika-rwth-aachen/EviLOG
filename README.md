@@ -90,20 +90,20 @@ You can visualize training progress by pointing *TensorBoard* to the output dire
 
 ### Evaluation
 
-Before evaluating your trained model, set the parameter `model-weights` to point to the `best_weights.hdf5` file in the `Checkpoints` folder of its model directory. Then run evaluation to compute a confusion matrix and class IoU scores.
+Before evaluating your trained model, set the parameter `model-weights` to point to the `best_weights.hdf5` file in the `Checkpoints` folder of its model directory. Then run evaluation to compute metrics and compare the results of the deep ISM to a geometric ISM.
 
 ```bash
-./evaluate.py -c config.1_FRLR.unetxst.yml --model-weights output/<YOUR-TIMESTAMP>/Checkpoints/best_weights.hdf5
+./evaluate.py -c config.yml --model-weights output/<YOUR-TIMESTAMP>/Checkpoints/best_weights.hdf5
 ```
 
 The evaluation results will be printed at the end of evaluation and also be exported to the `Evaluation` folder in your model directory.
 
 ### Testing
 
-To actually see the predictions your network makes, try it out on unseen input images, such as the validation dataset. The predicted BEV images are exported to the directory specified by the parameter `output-dir-testing`.
+To actually see the predictions your network makes, try it out on unseen input images, such as the provided real-world test data. The predicted occupancy grid maps are exported to the directory specified by the parameter `output-dir-testing`.
 
 ```bash
-./predict.py -c config.1_FRLR.unetxst.yml --model-weights output/<YOUR-TIMESTAMP>/Checkpoints/best_weights.hdf5 --prediction-dir output/<YOUR-TIMESTAMP>/Predictions
+./predict.py -c config.yml --model-weights output/<YOUR-TIMESTAMP>/Checkpoints/best_weights.hdf5 --prediction-dir output/<YOUR-TIMESTAMP>/Predictions
 ```
 
 References

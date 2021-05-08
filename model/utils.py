@@ -155,6 +155,16 @@ def evidences_to_masses(logits):
     return prob, u, S, num_classes
 
 
+def evidence_to_ogm(logits):
+    prob, _, _, _ = evidences_to_masses(logits)
+
+    height, width = prob.shape[0:2]
+    image = np.zeros([height, width, 3], dtype=np.uint8)
+    image[:, :, 1] = 255.0 * prob[:, :, 0]
+    image[:, :, 0] = 255.0 * prob[:, :, 1]
+    return image
+
+
 def readPointCloud(file, intensity_threshold):
 
     pypcd_pcl = pypcd.PointCloud.from_path(file).pc_data
