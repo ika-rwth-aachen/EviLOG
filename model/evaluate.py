@@ -3,7 +3,7 @@
 # ==============================================================================
 # MIT License
 #
-# Copyright 2020 Institute for Automotive Engineering of RWTH Aachen University.
+# Copyright 2021 Institute for Automotive Engineering of RWTH Aachen University.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -30,170 +30,281 @@ import sys
 import tqdm
 import numpy as np
 import cv2
-import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sb
 import tensorflow as tf
 import configargparse
+import json
 
 import utils
 
 
 # parse parameters from config file or CLI
 parser = configargparse.ArgParser()
-parser.add("-c",    "--config", is_config_file=True, help="config file")
-parser.add("-iv",   "--input-validation",       type=str, required=True, nargs="+", help="directory/directories of input samples for validation")
-parser.add("-lv",   "--label-validation",       type=str, required=True,            help="directory of label samples for validation")
-parser.add("-nv",   "--max-samples-validation", type=int, default=None,             help="maximum number of validation samples")
-parser.add("-is",   "--image-shape",            type=int, required=True, nargs=2,   help="image dimensions (HxW) of inputs and labels for network")
-parser.add("-ohi",  "--one-hot-palette-input",  type=str, required=True,            help="xml-file for one-hot-conversion of input images")
-parser.add("-ohl",  "--one-hot-palette-label",  type=str, required=True,            help="xml-file for one-hot-conversion of label images")
-parser.add("-cn",   "--class-names",            type=str, required=True, nargs="+", help="class names to annotate confusion matrix axes")
-parser.add("-m",    "--model",                  type=str, required=True,            help="Python file defining the neural network")
-parser.add("-uh",   "--unetxst-homographies",   type=str, default=None,             help="Python file defining a list H of homographies to be used in uNetXST model")
-parser.add("-mw",   "--model-weights",          type=str, required=True,            help="weights file of trained model")
+parser.add("-c", "--config", is_config_file=True, help="config file")
+parser.add("-iv",
+           "--input-validation",
+           type=str,
+           required=True,
+           help="directory/directories of input samples for validation")
+parser.add("-lv",
+           "--label-validation",
+           type=str,
+           required=True,
+           help="directory of label samples for validation")
+parser.add("-nv",
+           "--max-samples-validation",
+           type=int,
+           default=None,
+           help="maximum number of validation samples")
+parser.add("-m",
+           "--model",
+           type=str,
+           required=True,
+           help="Python file defining the neural network")
+parser.add("-bs",
+            "--batch-size",
+            type=int,
+            required=True,
+            help="batch size for training")
+parser.add("-mw",
+           "--model-weights",
+           type=str,
+           required=True,
+           help="weights file of trained model")
 conf, unknown = parser.parse_known_args()
 
-
 # determine absolute filepaths
-conf.input_validation       = [utils.abspath(path) for path in conf.input_validation]
-conf.label_validation       = utils.abspath(conf.label_validation)
-conf.one_hot_palette_input  = utils.abspath(conf.one_hot_palette_input)
-conf.one_hot_palette_label  = utils.abspath(conf.one_hot_palette_label)
-conf.model                  = utils.abspath(conf.model)
-conf.unetxst_homographies   = utils.abspath(conf.unetxst_homographies) if conf.unetxst_homographies is not None else conf.unetxst_homographies
-conf.model_weights          = utils.abspath(conf.model_weights)
+conf.input_validation = utils.abspath(conf.input_validation)
+conf.label_validation = utils.abspath(conf.label_validation)
+conf.model = utils.abspath(conf.model)
+conf.model_weights = utils.abspath(conf.model_weights)
 
+# input point cloud
+conf.y_min = -28.16
+conf.y_max = 28.16
+conf.x_min = -40.96
+conf.x_max = 40.96
+conf.z_min = -3.0
+conf.z_max = 1.0
+conf.step_x_size = 0.16
+conf.step_y_size = 0.16
+conf.intensity_threshold = 100
+
+# output grid map
+conf.label_resize_shape = [256, 176]
+
+# PointPillars Feature Net parameters
+conf.max_points_per_pillar = 100
+conf.max_pillars = 10000
+conf.number_features = 9
+conf.number_channels = 64
 
 # load network architecture module
 architecture = utils.load_module(conf.model)
 
-
 # get max_samples_validation random validation samples
-files_input = [utils.get_files_in_folder(folder) for folder in conf.input_validation]
+files_input = utils.get_files_in_folder(conf.input_validation)
 files_label = utils.get_files_in_folder(conf.label_validation)
 _, idcs = utils.sample_list(files_label, n_samples=conf.max_samples_validation)
-files_input = [np.take(f, idcs) for f in files_input]
+files_input = np.take(files_input, idcs)
 files_label = np.take(files_label, idcs)
-n_inputs = len(conf.input_validation)
 n_samples = len(files_label)
-image_shape_original_input = utils.load_image(files_input[0][0]).shape[0:2]
-image_shape_original_label = utils.load_image(files_label[0]).shape[0:2]
 print(f"Found {n_samples} samples")
 
-
-# parse one-hot-conversion.xml
-conf.one_hot_palette_input = utils.parse_convert_xml(conf.one_hot_palette_input)
-conf.one_hot_palette_label = utils.parse_convert_xml(conf.one_hot_palette_label)
-n_classes_input = len(conf.one_hot_palette_input)
-n_classes_label = len(conf.one_hot_palette_label)
-
-
-# build model
-if conf.unetxst_homographies is not None:
-  uNetXSTHomographies = utils.load_module(conf.unetxst_homographies)
-  model = architecture.get_network((conf.image_shape[0], conf.image_shape[1], n_classes_input), n_classes_label, n_inputs=n_inputs, thetas=uNetXSTHomographies.H)
-else:
-  model = architecture.get_network((conf.image_shape[0], conf.image_shape[1], n_classes_input), n_classes_label)
+model = architecture.getModel(
+    conf.y_min, conf.y_max, conf.x_min, conf.x_max, conf.step_x_size,
+    conf.step_y_size, conf.max_points_per_pillar, conf.max_pillars,
+    conf.number_features, conf.number_channels,
+    conf.label_resize_shape, conf.batch_size)
 model.load_weights(conf.model_weights)
 print(f"Reloaded model from {conf.model_weights}")
 
+# evaluate
+print("Evaluating ...")
+eval_dir = os.path.join(os.path.dirname(conf.model_weights), os.pardir,
+                        "Evaluation")
 
-# build data parsing function
-def parse_sample(input_files, label_file):
-    # parse and process input images
-    inputs = []
-    for inp in input_files:
-        inp = utils.load_image_op(inp)
-        inp = utils.resize_image_op(inp, image_shape_original_input, conf.image_shape, interpolation=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
-        inp = utils.one_hot_encode_image_op(inp, conf.one_hot_palette_input)
-        inputs.append(inp)
-    inputs = inputs[0] if n_inputs == 1 else tuple(inputs)
-    # parse and process label image
-    label = utils.load_image_op(label_file)
-    label = utils.resize_image_op(label, image_shape_original_label, conf.image_shape, interpolation=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
-    label = utils.one_hot_encode_image_op(label, conf.one_hot_palette_label)
-    return inputs, label
+# evaluation metrics
+evaluation_dict = {}
+evaluation_dict['deep'] = {}
+evaluation_dict['deep']['KL_distance'] = []
+evaluation_dict['deep']['m_unknown'] = []
+evaluation_dict['deep']['m_occupied'] = []
+evaluation_dict['deep']['m_free'] = []
+evaluation_dict['naive'] = {}
+evaluation_dict['naive']['KL_distance'] = []
+evaluation_dict['naive']['m_unknown'] = []
+evaluation_dict['naive']['m_occupied'] = []
+evaluation_dict['naive']['m_free'] = []
+
+def parseSampleFn(input_file, sample_idx, label_file=None):
+
+    # convert sample index to batch element index
+    batch_element_idx = sample_idx % conf.batch_size
+
+    # convert PCD file to matrix with columns (x, y, z, i)
+    #input_file = bytes.decode(input_file)
+    lidar = utils.readPointCloud(input_file, conf.intensity_threshold)
+
+    if label_file is not None:
+        # convert grid map image to matrix
+        #label_file = bytes.decode(label_file)
+        grid_map = tf.image.decode_image(tf.io.read_file(label_file))
+
+    # create point pillars
+    pillars, voxels = utils.make_point_pillars(
+        lidar, conf.max_points_per_pillar, conf.max_pillars,
+        conf.step_x_size, conf.step_y_size, conf.x_min, conf.x_max,
+        conf.y_min, conf.y_max, conf.z_min, conf.z_max)
+    pillars = pillars.astype(np.float32)
+    voxels = voxels.astype(np.int32)
+    voxels[..., 0] = batch_element_idx
+
+    # convert grid map to tensorflow label
+    if label_file is not None:
+        grid_map = tf.image.resize(
+            grid_map,
+            conf.label_resize_shape[0:2],
+            method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
+        # use only channels 'free' and 'occupied'
+        grid_map = tf.cast(grid_map[..., 1:3], tf.float32)
+        # normalize from image [0..255] to [0.0..1.0]
+        grid_map = tf.divide(grid_map, 255.0)
+
+    network_inputs = (pillars, voxels)
+    if label_file is not None:
+        network_labels = (grid_map)
+    else:
+        network_labels = None
+
+    return network_inputs, network_labels
 
 
-# evaluate confusion matrix
-print("Evaluating confusion matrix ...")
-confusion_matrix = np.zeros((n_classes_label, n_classes_label), dtype=np.int64)
 for k in tqdm.tqdm(range(n_samples)):
 
-    input_files = [files_input[i][k] for i in range(n_inputs)]
+    input_file = files_input[k]
     label_file = files_label[k]
 
-    # load sample
-    inputs, label = parse_sample(input_files, label_file)
+    input, label = parseSampleFn(input_file, 0, label_file)
+    prediction = model.predict(input).squeeze()
 
-    # add batch dim
-    if n_inputs > 1:
-        inputs = [np.expand_dims(i, axis=0) for i in inputs]
-    else:
-        inputs = np.expand_dims(inputs, axis=0)
+    sample_name = os.path.splitext(os.path.basename(input_file))[0]
 
-    # run prediction
-    prediction = model.predict(inputs).squeeze()
+    kld = tf.keras.metrics.KLDivergence()
 
-    # compute confusion matrix
-    label = np.argmax(label, axis=-1)
-    prediction = np.argmax(prediction, axis=-1)
-    sample_confusion_matrix = tf.math.confusion_matrix(label.flatten(), prediction.flatten(), num_classes=n_classes_label).numpy()
+    # collect belief masses and Kullback-Leibler distance for predictions by deep ISM
+    prob, u, _, _ = utils.evidences_to_masses(prediction)
+    evaluation_dict['deep']['m_unknown'].append(
+        float(tf.reduce_mean(u)))
+    evaluation_dict['deep']['m_free'].append(
+        float(tf.reduce_mean(prob[..., 0])))
+    evaluation_dict['deep']['m_occupied'].append(
+        float(tf.reduce_mean(prob[..., 1])))
+    evaluation_dict['deep']['KL_distance'].append(
+        float(kld(label, prediction)))
 
-    # sum confusion matrix over dataset
-    confusion_matrix += sample_confusion_matrix
+    # create "naive" occupancy grid map for comparision
+    naive_ogm = utils.naive_geometric_ISM(input_file, conf.x_min, conf.x_max,
+                                    conf.y_min, conf.y_max,
+                                    conf.step_x_size, conf.step_y_size,
+                                    -1.11, 0.39)
+    naive_ogm = cv2.resize(
+        naive_ogm, (conf.label_resize_shape[1], conf.label_resize_shape[0]))
+    naive_ogm_dir = os.path.join(eval_dir, "naive_ogm")
+    if not os.path.exists(naive_ogm_dir):
+        os.makedirs(naive_ogm_dir)
+    naive_ogm_file = os.path.join(naive_ogm_dir, sample_name + '.png')
+    cv2.imwrite(naive_ogm_file, naive_ogm)
 
+    # collect belief masses and Kullback-Leibler distance for OGMs by geometric ISM
+    naive_ogm = naive_ogm.astype(
+        np.float32
+    )[..., 1:
+        3] / 255.0  # convert green and red layer to evidence layers for free and occupied
+    prob_naive, u_naive, _, _ = utils.evidences_to_masses(naive_ogm)
+    evaluation_dict['naive']['m_unknown'].append(
+        float(tf.reduce_mean(u_naive)))
+    evaluation_dict['naive']['m_free'].append(
+        float(tf.reduce_mean(prob_naive[..., 0])))
+    evaluation_dict['naive']['m_occupied'].append(
+        float(tf.reduce_mean(prob_naive[..., 1])))
+    evaluation_dict['naive']['KL_distance'].append(
+        float(kld(label, naive_ogm)))
 
-# normalize confusion matrix rows (What percentage of class X has been predicted to be class Y?)
-confusion_matrix_norm = confusion_matrix / np.sum(confusion_matrix, axis=1)[:, np.newaxis]
+# create subfolders
+plot_dir = os.path.join(eval_dir, "plots")
+raw_dir = os.path.join(eval_dir, "raw")
+if not os.path.exists(plot_dir):
+    os.makedirs(plot_dir)
+if not os.path.exists(raw_dir):
+    os.makedirs(raw_dir)
 
+# plot cross entropy over evaluation dataset
+fig = plt.figure()
+ax = fig.add_subplot(111)
+ax.set_xlabel('time in seconds')
 
-# compute per-class IoU
-row_sum = np.sum(confusion_matrix, axis=0)
-col_sum = np.sum(confusion_matrix, axis=1)
-diag    = np.diag(confusion_matrix)
-intersection = diag
-union = row_sum + col_sum - diag
-ious = intersection / union
-iou = {}
-for idx, v in enumerate(ious):
-    iou[conf.class_names[idx]] = v
+# Turn off axis lines and ticks of the big subplot
+ax.spines['top'].set_color('none')
+ax.spines['bottom'].set_color('none')
+ax.spines['left'].set_color('none')
+ax.spines['right'].set_color('none')
+ax.tick_params(labelcolor='w',
+                top=False,
+                bottom=False,
+                left=False,
+                right=False)
 
+ax1 = fig.add_subplot(211)
+ax2 = fig.add_subplot(212)
 
-# print metrics
-print("\nPer-class IoU:")
-for k, v in iou.items():
-    print(f"  {k}: {100*v:3.2f}%")
-print("\nConfusion Matrix:")
-print(confusion_matrix)
-print("\nNormalized Confusion Matrix:")
-print(confusion_matrix_norm)
+t = np.arange(0, len(evaluation_dict['naive']['m_unknown']))
+ax1.plot(t, evaluation_dict['deep']['m_unknown'], 'b-', t,
+            evaluation_dict['deep']['m_free'], 'g-', t,
+            evaluation_dict['deep']['m_occupied'], 'r-', t,
+            evaluation_dict['naive']['m_unknown'], 'b--', t,
+            evaluation_dict['naive']['m_free'], 'g--', t,
+            evaluation_dict['naive']['m_occupied'], 'r--')
+ax1.set_ylim(0, 1.0)
+ax1.legend([
+    r'$\overline{m}(\Theta)$', r'$\overline{m}(F)$',
+    r'$\overline{m}(O)$', r'$\overline{m}_G(\Theta)$',
+    r'$\overline{m}_G(F)$', r'$\overline{m}_G(O)$'
+])
 
+ax2.plot(t, evaluation_dict['deep']['KL_distance'], 'k-', t,
+            evaluation_dict['naive']['KL_distance'], 'k--')
+ax2.legend([
+    r'$KL\left[Dir(p|\hat{\alpha})||Dir(p|\alpha)\right]$',
+    r'$KL\left[Dir(p|\hat{\alpha}_G)||Dir(p|\alpha)\right]$'
+])
 
-# plot confusion matrix
-confusion_matrix_df = pd.DataFrame(confusion_matrix_norm*100, conf.class_names, conf.class_names)
-plt.figure(figsize=(8,8))
-hm = sb.heatmap(confusion_matrix_df,
-                annot=True,
-                fmt=".2f",
-                square=True,
-                vmin=0,
-                vmax=100,
-                cbar_kws={"label": "%", "shrink": 0.8},
-                cmap=plt.cm.Blues)
-hm.set_xticklabels(hm.get_xticklabels(), rotation=30)
-plt.ylabel("True Label")
-plt.xlabel("Predicted Label")
+plt.savefig(os.path.join(plot_dir, 'evaluation.png'))
 
+# store values as json file
+evaluation_json = dict()
+evaluation_json['eval_kld'] = np.vstack(
+    (t,
+        evaluation_dict['deep']['KL_distance'])).transpose().tolist()
+evaluation_json['eval_uncertainty'] = np.vstack(
+    (t,
+        evaluation_dict['deep']['m_unknown'])).transpose().tolist()
+evaluation_json['eval_prob_free'] = np.vstack(
+    (t, evaluation_dict['deep']['m_free'])).transpose().tolist()
+evaluation_json['eval_prob_occupied'] = np.vstack(
+    (t,
+        evaluation_dict['deep']['m_occupied'])).transpose().tolist()
 
-# save confusion matrix and class ious to file and export plot
-eval_folder = os.path.join(os.path.dirname(conf.model_weights), os.pardir, "Evaluation")
-if not os.path.exists(eval_folder):
-  os.makedirs(eval_folder)
-filename = os.path.join(eval_folder, "confusion_matrix.txt")
-np.savetxt(filename, confusion_matrix, fmt="%d")
-filename = os.path.join(eval_folder, "class_iou.txt")
-np.savetxt(filename, ious, fmt="%f")
-filename = os.path.join(eval_folder, "confusion_matrix.pdf")
-plt.savefig(filename, bbox_inches="tight")
+evaluation_json['eval_naive_kld'] = np.vstack((
+    t,
+    evaluation_dict['naive']['KL_distance'])).transpose().tolist()
+evaluation_json['eval_naive_uncertainty'] = np.vstack(
+    (t,
+        evaluation_dict['naive']['m_unknown'])).transpose().tolist()
+evaluation_json['eval_naive_prob_free'] = np.vstack(
+    (t, evaluation_dict['naive']['m_free'])).transpose().tolist()
+evaluation_json['eval_naive_prob_occupied'] = np.vstack(
+    (t,
+        evaluation_dict['naive']['m_occupied'])).transpose().tolist()
+with open(os.path.join(raw_dir, 'evaluation.json'), 'w') as fp:
+    json.dump(evaluation_json, fp)

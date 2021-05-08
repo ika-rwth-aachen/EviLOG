@@ -1,7 +1,7 @@
 # ==============================================================================
 # MIT License
 #
-# Copyright 2020 Institute for Automotive Engineering of RWTH Aachen University.
+# Copyright 2021 Institute for Automotive Engineering of RWTH Aachen University.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,9 @@ import cv2
 import xml.etree.ElementTree as xmlET
 from tqdm import tqdm
 import importlib
+import math
+from pypcd import pypcd
+from point_pillars import createPillars
 
 
 def abspath(path):
@@ -43,11 +46,12 @@ def get_files_in_folder(folder):
     return sorted([os.path.join(folder, f) for f in os.listdir(folder)])
 
 
-
 def sample_list(*ls, n_samples, replace=False):
 
     n_samples = min(len(ls[0]), n_samples)
-    idcs = np.random.choice(np.arange(0, len(ls[0])), n_samples, replace=replace)
+    idcs = np.random.choice(np.arange(0, len(ls[0])),
+                            n_samples,
+                            replace=replace)
     samples = zip([np.take(l, idcs) for l in ls])
     return samples, idcs
 
@@ -81,15 +85,19 @@ def load_image_op(filename):
 def resize_image(img, shape, interpolation=cv2.INTER_CUBIC):
 
     # resize relevant image axis to length of corresponding target axis while preserving aspect ratio
-    axis = 0 if float(shape[0]) / float(img.shape[0]) > float(shape[1]) / float(img.shape[1]) else 1
+    axis = 0 if float(shape[0]) / float(img.shape[0]) > float(
+        shape[1]) / float(img.shape[1]) else 1
     factor = float(shape[axis]) / float(img.shape[axis])
-    img = cv2.resize(img, (0,0), fx=factor, fy=factor, interpolation=interpolation)
+    img = cv2.resize(img, (0, 0),
+                     fx=factor,
+                     fy=factor,
+                     interpolation=interpolation)
 
     # crop other image axis to match target shape
     center = img.shape[int(not axis)] / 2.0
     step = shape[int(not axis)] / 2.0
-    left = int(center-step)
-    right = int(center+step)
+    left = int(center - step)
+    right = int(center + step)
     if axis == 0:
         img = img[:, left:right]
     else:
@@ -98,7 +106,11 @@ def resize_image(img, shape, interpolation=cv2.INTER_CUBIC):
     return img
 
 
-def resize_image_op(img, fromShape, toShape, cropToPreserveAspectRatio=True, interpolation=tf.image.ResizeMethod.BICUBIC):
+def resize_image_op(img,
+                    fromShape,
+                    toShape,
+                    cropToPreserveAspectRatio=True,
+                    interpolation=tf.image.ResizeMethod.BICUBIC):
 
     if not cropToPreserveAspectRatio:
         img = tf.image.resize(img, toShape, method=interpolation)
@@ -111,10 +123,14 @@ def resize_image_op(img, fromShape, toShape, cropToPreserveAspectRatio=True, int
         relevantAxis = 0 if fx < fy else 1
         if relevantAxis == 0:
             crop = fromShape[0] * toShape[1] / toShape[0]
-            img = tf.image.crop_to_bounding_box(img, 0, int((fromShape[1] - crop) / 2), fromShape[0], int(crop))
+            img = tf.image.crop_to_bounding_box(img, 0,
+                                                int((fromShape[1] - crop) / 2),
+                                                fromShape[0], int(crop))
         else:
             crop = fromShape[1] * toShape[0] / toShape[1]
-            img = tf.image.crop_to_bounding_box(img, int((fromShape[0] - crop) / 2), 0, int(crop), fromShape[1])
+            img = tf.image.crop_to_bounding_box(img,
+                                                int((fromShape[0] - crop) / 2),
+                                                0, int(crop), fromShape[1])
 
         # then resize to target shape
         img = tf.image.resize(img, toShape, method=interpolation)
@@ -122,137 +138,149 @@ def resize_image_op(img, fromShape, toShape, cropToPreserveAspectRatio=True, int
     return img
 
 
-def one_hot_encode_image(image, palette):
+def evidences_to_masses(logits):
+    # convert evidences (y_pred) to parameters of Dirichlet distribution (alpha)
+    alpha = logits + tf.ones(tf.shape(logits))
 
-    one_hot_map = []
+    # Dirichlet strength (sum alpha for all classes)
+    S = tf.reduce_sum(alpha, axis=-1, keepdims=True)
 
-    # find instances of class colors and append layer to one-hot-map
-    for class_colors in palette:
-        class_map = np.zeros(image.shape[0:2], dtype=bool)
-        for color in class_colors:
-            class_map = class_map | (image == color).all(axis=-1)
-        one_hot_map.append(class_map)
+    num_classes = tf.cast(tf.shape(logits)[-1], tf.dtypes.float32)
 
-    # finalize one-hot-map
-    one_hot_map = np.stack(one_hot_map, axis=-1)
-    one_hot_map = one_hot_map.astype(np.float32)
+    # uncertainty
+    u = num_classes / S
+    # belief masses
+    prob = logits / S
 
-    return one_hot_map
-
-
-def one_hot_encode_image_op(image, palette):
-
-    one_hot_map = []
-
-    for class_colors in palette:
-
-        class_map = tf.zeros(image.shape[0:2], dtype=tf.int32)
-
-        for color in class_colors:
-            # find instances of color and append layer to one-hot-map
-            class_map = tf.bitwise.bitwise_or(class_map, tf.cast(tf.reduce_all(tf.equal(image, color), axis=-1), tf.int32))
-        one_hot_map.append(class_map)
-
-    # finalize one-hot-map
-    one_hot_map = tf.stack(one_hot_map, axis=-1)
-    one_hot_map = tf.cast(one_hot_map, tf.float32)
-
-    return one_hot_map
+    return prob, u, S, num_classes
 
 
-def one_hot_decode_image(one_hot_image, palette):
+def evidence_to_ogm(logits):
+    prob, _, _, _ = evidences_to_masses(logits)
 
-    # create empty image with correct dimensions
-    height, width = one_hot_image.shape[0:2]
-    depth = palette[0][0].size
-    image = np.zeros([height, width, depth])
-
-    # reduce all layers of one-hot-encoding to one layer with indices of the classes
-    map_of_classes = one_hot_image.argmax(2)
-
-    for idx, class_colors in enumerate(palette):
-        # fill image with corresponding class colors
-        image[np.where(map_of_classes == idx)] = class_colors[0]
-
-    image = image.astype(np.uint8)
-
+    height, width = prob.shape[0:2]
+    image = np.zeros([height, width, 3], dtype=np.uint8)
+    image[:, :, 1] = 255.0 * prob[:, :, 0]
+    image[:, :, 0] = 255.0 * prob[:, :, 1]
     return image
 
 
-def parse_convert_xml(conversion_file_path):
+def readPointCloud(file, intensity_threshold):
 
-    defRoot = xmlET.parse(conversion_file_path).getroot()
+    pypcd_pcl = pypcd.PointCloud.from_path(file).pc_data
+    x = pypcd_pcl["x"]
+    y = pypcd_pcl["y"]
+    z = pypcd_pcl["z"]
+    i = np.clip(pypcd_pcl["intensity"] / intensity_threshold, 0.0, 1.0)
+    pcl = np.array([x, y, z, i], dtype=np.float32)
+    pcl = np.transpose(pcl)  # one point per row with columns (x, y, z, i)
 
-    one_hot_palette = []
-    class_list = []
-    for idx, defElement in enumerate(defRoot.findall("SLabel")):
-        from_color = np.fromstring(defElement.get("fromColour"), dtype=int, sep=" ")
-        to_class = np.fromstring(defElement.get("toValue"), dtype=int, sep=" ")
-        if to_class in class_list:
-             one_hot_palette[class_list.index(to_class)].append(from_color)
-        else:
-            one_hot_palette.append([from_color])
-            class_list.append(to_class)
-
-    return one_hot_palette
+    return pcl
 
 
-def get_class_distribution(folder, shape, palette):
+def make_point_pillars(points: np.ndarray,
+                       max_points_per_pillar,
+                       max_pillars,
+                       step_x_size,
+                       step_y_size,
+                       x_min,
+                       x_max,
+                       y_min,
+                       y_max,
+                       z_min,
+                       z_max,
+                       print_time=False):
 
-    # get filepaths
-    files = [os.path.join(folder, f) for f in os.listdir(folder) if not f.startswith(".")]
+    assert points.ndim == 2
+    assert points.shape[1] == 4  # (x, y, z, i) in columns
+    assert points.dtype == np.float32
 
-    n_classes = len(palette)
+    pillars, indices = createPillars(points, max_points_per_pillar,
+                                     max_pillars, step_x_size, step_y_size,
+                                     x_min, x_max, y_min, y_max, z_min, z_max,
+                                     print_time)
 
-    def get_img(file, shape, interpolation=cv2.INTER_NEAREST, one_hot_reduce=False):
-        img = load_image(file)
-        img = resize_image(img, shape, interpolation)
-        img = one_hot_encode_image(img, palette)
-        return img
-
-    px = shape[0] * shape[1]
-
-    distribution = {}
-    for k in range(n_classes):
-        distribution[str(k)] = 0
-
-    i = 0
-    bar = tqdm(files)
-    for f in bar:
-
-        img = get_img(f, shape)
-
-        classes = np.argmax(img, axis=-1)
-
-        unique, counts = np.unique(classes, return_counts=True)
-
-        occs = dict(zip(unique, counts))
-
-        for k in range(n_classes):
-            occ = occs[k] if k in occs.keys() else 0
-            distribution[str(k)] = (distribution[str(k)] * i + occ / px) / (i+1)
-
-        bar.set_postfix(distribution)
-
-        i += 1
-
-    return distribution
+    return pillars, indices
 
 
-def weighted_categorical_crossentropy(weights):
+def lidar_to_bird_view_img(pointcloud: np.ndarray,
+                           x_min,
+                           x_max,
+                           y_min,
+                           y_max,
+                           step_x_size,
+                           step_y_size,
+                           factor=1):
+    # Input:
+    #   pointcloud: (N, 4) with N points [x, y, z, intensity], intensity in [0,1]
+    # Output:
+    #   birdview: ((x_max-x_min)/step_x_size)*factor, ((y_max-y_min)/step_y_size)*factor, 3)
 
-    def wcce(y_true, y_pred):
-        Kweights = tf.constant(weights)
-        if not tf.is_tensor(y_pred): y_pred = tf.constant(y_pred)
-        y_true = tf.cast(y_true, y_pred.dtype)
-        return tf.keras.backend.categorical_crossentropy(y_true, y_pred) * tf.keras.backend.sum(y_true * Kweights, axis=-1)
+    size_x = int((x_max - x_min) / step_x_size)
+    size_y = int((y_max - y_min) / step_y_size)
+    birdview = np.zeros((size_x * factor, size_y * factor, 1), dtype=np.uint8)
 
-    return wcce
+    for point in pointcloud:
+        x, y = point[0:2]
+        # scale with minimum intensity for visibility in image
+        i = 55 + point[3] * 200
+        if not 0 <= i <= 255:
+            raise ValueError("Intensity out of range [0,1].")
+        if x_min < x < x_max and y_min < y < y_max:
+            x = int((x - x_min) / step_x_size * factor)
+            y = int((y - y_min) / step_y_size * factor)
+            cv2.circle(birdview, ((size_y * factor - y, size_x * factor - x)),
+                       radius=0,
+                       color=(i))
+    birdview = cv2.applyColorMap(birdview, cv2.COLORMAP_HOT)
+    birdview = cv2.cvtColor(birdview, cv2.COLOR_BGR2RGB)
+
+    return birdview
 
 
-class MeanIoUWithOneHotLabels(tf.keras.metrics.MeanIoU):
+def rotate_pointcloud(pointcloud, angle):
+    rotation = np.array([[math.cos(angle), -math.sin(angle)],
+                         [math.sin(angle), math.cos(angle)]])
+    # Lidar has the shape [N, 4] with 4 being x, y, z, intensity. Apply the rotation matrix to x
+    # and y only. Transpose and transpose back the matrix in order to apply the rotation to all
+    # points in one large operation.
+    pointcloud[:, 0:2] = (rotation @ pointcloud[:, 0:2].T).T
 
-    def __call__(self, y_true, y_pred, sample_weight=None):
-        y_true = tf.argmax(y_true, axis=-1)
-        y_pred = tf.argmax(y_pred, axis=-1)
-        return super().__call__(y_true, y_pred, sample_weight=sample_weight)
+    return pointcloud
+
+def naive_geometric_ISM(pcd_file_path,
+                        x_min,
+                        x_max,
+                        y_min,
+                        y_max,
+                        step_size_x,
+                        step_size_y,
+                        z_min_obstacle=-1.0,
+                        z_max_obstacle=0.5):
+    pypcd_pcl = pypcd.PointCloud.from_path(pcd_file_path).pc_data
+    x = pypcd_pcl["x"]
+    y = pypcd_pcl["y"]
+    z = pypcd_pcl["z"]
+    pcl = np.array([x, y, z], dtype=np.float32)
+    pcl = np.transpose(pcl)  # one point per row with columns (x, y, z, i)
+
+    # create image representing naive OGM using a simple geometric inverse sensor model
+    cells_x = int((x_max - x_min) / step_size_x)
+    cells_y = int((y_max - y_min) / step_size_y)
+    center_x = int(-x_min / step_size_x)
+    center_y = int(-y_min / step_size_y)
+    naive_ogm = np.zeros((cells_x, cells_y, 3), dtype=np.uint8)
+    for point in pcl:
+        x, y, z = point[0:3]
+
+        if z_min_obstacle < z < z_max_obstacle and x_min < x < x_max and y_min < y < y_max:
+            x = int((x - x_min) / step_size_x)
+            y = int((y - y_min) / step_size_y)
+            cv2.line(naive_ogm, (cells_y - y, cells_x - x),
+                     (cells_y - center_y, cells_x - center_x), (0, 255, 0),
+                     thickness=1)
+            cv2.circle(naive_ogm, ((cells_y - y, cells_x - x)),
+                       radius=0,
+                       color=(0, 0, 255))
+
+    return naive_ogm
