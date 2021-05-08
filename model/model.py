@@ -189,9 +189,10 @@ class ExpectedMeanSquaredError(tf.keras.losses.Loss):
         loss = tf.math.add(
             tf.reduce_sum((y_true - prob)**2, axis=-1, keepdims=True),
             tf.reduce_sum(prob * (1 - prob) / (S + 1), axis=-1, keepdims=True))
+        alpha = y_pred * (1 - y_true) + 1
         KL_reg = tf.minimum(1.0, tf.cast(
             self.epoch_num / 10, tf.float32)) * self.kl_regularization(
-                y_pred * (1 - y_true) + 1, num_evidential_classes)
+                alpha, num_evidential_classes)
         loss = loss + KL_reg
 
         # higher weight for loss on evidence for state "occupied" because it is underrepresented in training data
@@ -204,7 +205,7 @@ class ExpectedMeanSquaredError(tf.keras.losses.Loss):
         return loss
 
     def kl_regularization(self, alpha, K):
-        beta = tf.ones(alpha.shape)
+        beta = tf.ones_like(alpha)
         S_alpha = tf.reduce_sum(alpha, axis=-1, keepdims=True)
         KL = tf.math.add_n([
             tf.reduce_sum((alpha - beta) *

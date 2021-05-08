@@ -32,6 +32,7 @@ from datetime import datetime
 import numpy as np
 import cv2
 import tensorflow as tf
+import tensorflow.keras.backend as K
 import tensorflow_addons as tfa
 import random
 import math
@@ -260,8 +261,15 @@ class LidarGridMapping():
             save_best_only=True,
             monitor="val_loss",
             save_weights_only=True)
+
+        class EpochCallback(tf.keras.callbacks.Callback):
+            def on_epoch_begin(self, epoch, logs={}):
+                K.set_value(self.model.loss.epoch_num, epoch)
+        
+        epoch_cb = EpochCallback()
+
         callbacks = [
-            tensorboard_cb, checkpoint_cb, best_checkpoint_cb
+            tensorboard_cb, checkpoint_cb, best_checkpoint_cb, epoch_cb
         ]
 
         # start training

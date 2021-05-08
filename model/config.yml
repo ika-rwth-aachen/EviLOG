@@ -1,9 +1,9 @@
 input-training: ../data/input_train
 label-training: ../data/label_train
-max-samples-training: 9999
+max-samples-training: 10000
 input-validation: ../data/input_valid
 label-validation: ../data/label_valid
-max-samples-validation: 1076
+max-samples-validation: 10000
 
 model: model.py
 epochs: 100
