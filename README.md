@@ -40,9 +40,16 @@ deep_lidar_grid_mapping
 
 ## Installation
 
-We suggest to setup a **Python 3.8** virtual environment (e.g. by using _virtualenv_ or _conda_). Inside the virtual environment, users can then use _pip_ to install all package dependencies. The most important packages are _TensorFlow 2.4_, _TensorFlow AddOns 0.12.1_ and [_pypcd_](https://github.com/klintan/pypcd.git#egg=pypcd).
+We suggest to setup a **Python 3.7** virtual environment (e.g. by using _virtualenv_ or _conda_). Inside the virtual environment, users can then use _pip_ to install all package dependencies.
+
 ```bash
 pip install -r requirements.txt
+```
+
+or create a conda environment directly:
+
+```bash
+conda env create -f environment.yml
 ```
 
 ## Data
@@ -50,13 +57,18 @@ pip install -r requirements.txt
 We provide all data that is required to reproduce the results from our paper. This includes
 
 - **Synthetic training and validation data** consisting of lidar point clouds (as *pcd* files) and occupancy grid maps (as *png* files)
-- **Real-world test data** that was recorded with a Velodyne VLP32C lidar sensor
+- **Real-world test data** that was recorded with a *Velodyne VLP32C* lidar sensor
 
-Please fill out the form below to get access to the dataset:
+We are very excited about the impact of our provided dataset. Please [fill out this form](https://forms.gle/PYYL9Q8ZHKW4X5ZQ8) to get access to the dataset. After submitting the form, you will receive a mail from Google Drive and are able to download the dataset within 1 hour. Unfortunately, sharing with specific persons requires a Google account.
 
-<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfok8b0hTS5qXJ3mIVQho2jsGFtJ3kGkmYJX5OeXvYwc2kuzw/viewform?embedded=true" width="400" height="200" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
+_**Note**: Download size is approximately 3.2GB, uncompressed size is approximately 4.2GB._
 
-_**Note**: Download size is approximately 3.7GB, uncompressed size of both datasets is approximately 7.7GB._
+Put the downloaded tar archive into the [data](./data) folder and extract it:
+
+```bash
+# deep_lidar_grid_mapping/data/
+tar xf LidarGridMapping2021.tar.xz 
+```
 
 ## Training
 
@@ -66,13 +78,12 @@ Input directories, training parameters, and more can be set via CLI arguments or
 
 ### Training
 
-Start training _uNetXST_ by passing the provided config file [model/config.1_FRLR.unetxst.yml](model/config.1_FRLR.unetxst.yml). Training will automatically stop if the MIoU score on the validation dataset is not rising anymore.
+Start training the model by passing the provided config file [model/config.yml](model/config.yml).
 
 ```bash
 cd model/
-```
-```bash
-./train.py -c config.1_FRLR.unetxst.yml
+export TF_FORCE_GPU_ALLOW_GROWTH=true  # this is required for small GPU memory
+./train.py -c config.yml
 ```
 
 You can visualize training progress by pointing *TensorBoard* to the output directory (`model/output` by default). Training metrics will also be printed to `stdout`.

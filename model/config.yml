@@ -1,0 +1,41 @@
+input-training: ../data/input_train
+label-training: ../data/label_train
+max-samples-training: 9999
+input-validation: ../data/input_valid
+label-validation: ../data/label_valid
+max-samples-validation: 1076
+
+model: model.py
+epochs: 100
+batch-size: 1
+learning-rate: 1e-4
+
+save-interval: 5
+output-dir: output
+
+# model-weights:
+
+# for predict.py only
+input-testing: ../data/input_test
+max-samples-testing: 10000
+# prediction-dir:
+
+# input point cloud
+y_min: -28.16
+y_max: 28.16
+x_min: -40.96
+x_max: 40.96
+z_min: -3.0
+z_max: 1.0
+step_x_size: 0.16
+step_y_size: 0.16
+intensity_threshold: 100
+
+# output grid map
+label_resize_shape: [256, 176]
+
+# PointPillars Feature Net parameters #
+max_points_per_pillar: 100
+max_pillars: 10000
+number_features: 9
+number_channels: 64
