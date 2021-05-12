@@ -54,10 +54,10 @@ parser.add("-m",
            required=True,
            help="Python file defining the neural network")
 parser.add("-bs",
-            "--batch-size",
-            type=int,
-            required=True,
-            help="batch size for training")
+           "--batch-size",
+           type=int,
+           required=True,
+           help="batch size for training")
 parser.add("-mw",
            "--model-weights",
            type=str,
@@ -107,13 +107,14 @@ n_samples = len(files_input)
 print(f"Found {n_samples} samples")
 
 # build model
-model = architecture.getModel(
-    conf.y_min, conf.y_max, conf.x_min, conf.x_max, conf.step_x_size,
-    conf.step_y_size, conf.max_points_per_pillar, conf.max_pillars,
-    conf.number_features, conf.number_channels,
-    conf.label_resize_shape, conf.batch_size)
+model = architecture.getModel(conf.y_min, conf.y_max, conf.x_min, conf.x_max,
+                              conf.step_x_size, conf.step_y_size,
+                              conf.max_points_per_pillar, conf.max_pillars,
+                              conf.number_features, conf.number_channels,
+                              conf.label_resize_shape, conf.batch_size)
 model.load_weights(conf.model_weights)
 print(f"Reloaded model from {conf.model_weights}")
+
 
 # build data parsing function
 def parseSampleFn(input_file, sample_idx, label_file=None):
@@ -132,9 +133,9 @@ def parseSampleFn(input_file, sample_idx, label_file=None):
 
     # create point pillars
     pillars, voxels = utils.make_point_pillars(
-        lidar, conf.max_points_per_pillar, conf.max_pillars,
-        conf.step_x_size, conf.step_y_size, conf.x_min, conf.x_max,
-        conf.y_min, conf.y_max, conf.z_min, conf.z_max)
+        lidar, conf.max_points_per_pillar, conf.max_pillars, conf.step_x_size,
+        conf.step_y_size, conf.x_min, conf.x_max, conf.y_min, conf.y_max,
+        conf.z_min, conf.z_max)
     pillars = pillars.astype(np.float32)
     voxels = voxels.astype(np.int32)
     voxels[..., 0] = batch_element_idx
@@ -178,4 +179,5 @@ for k in tqdm.tqdm(range(n_samples)):
 
     output_file = os.path.join(conf.prediction_dir,
                                os.path.basename(files_input[k]))
-    cv2.imwrite(output_file + ".png", cv2.cvtColor(prediction_img, cv2.COLOR_RGB2BGR))
+    cv2.imwrite(output_file + ".png",
+                cv2.cvtColor(prediction_img, cv2.COLOR_RGB2BGR))

@@ -248,6 +248,7 @@ def rotate_pointcloud(pointcloud, angle):
 
     return pointcloud
 
+
 def naive_geometric_ISM(pcd_file_path,
                         x_min,
                         x_max,

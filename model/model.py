@@ -23,15 +23,10 @@
 # ==============================================================================
 
 import tensorflow as tf
-import math
-import os
 import numpy as np
-import matplotlib.pyplot as plt
-from pypcd import pypcd
-import cv2
-import json
 
 import utils
+from third_party.point_pillars import getPointPillarsModel
 
 
 def getModel(y_min, y_max, x_min, x_max, step_x_size, step_y_size,
@@ -41,126 +36,10 @@ def getModel(y_min, y_max, x_min, x_max, step_x_size, step_y_size,
     Xn = int((x_max - x_min) / step_x_size)
     Yn = int((y_max - y_min) / step_y_size)
 
-    # extract required parameters
-    max_pillars = int(max_pillars)
-    max_points = int(max_points_per_pillar)
-    nb_features = int(number_features)
-    nb_channels = int(number_channels)
-    image_size = tuple([Xn, Yn])
-
-    if tf.keras.backend.image_data_format() == "channels_first":
-        raise NotImplementedError
-    else:
-        input_shape = (max_pillars, max_points, nb_features)
-
-    input_pillars = tf.keras.layers.Input(input_shape,
-                                          batch_size=batch_size,
-                                          name="pillars/input")
-    input_indices = tf.keras.layers.Input((max_pillars, 3),
-                                          batch_size=batch_size,
-                                          name="pillars/indices",
-                                          dtype=tf.int32)
-
-    # Pillar Feature Net
-    x = tf.keras.layers.Conv2D(nb_channels, (1, 1),
-                               activation='linear',
-                               use_bias=False,
-                               name="pillars/conv2d")(input_pillars)
-    x = tf.keras.layers.BatchNormalization(name="pillars/batchnorm",
-                                           fused=True,
-                                           epsilon=1e-3,
-                                           momentum=0.99)(x)
-    x = tf.keras.layers.Activation("relu", name="pillars/relu")(x)
-    x = tf.keras.layers.MaxPool2D((1, max_points),
-                                  name="pillars/maxpooling2d")(x)
-
-    if tf.keras.backend.image_data_format() == "channels_first":
-        reshape_shape = (nb_channels, max_pillars)
-    else:
-        reshape_shape = (max_pillars, nb_channels)
-
-    x = tf.keras.layers.Reshape(reshape_shape, name="pillars/reshape")(x)
-
-    # pillars = tf.keras.layers.Lambda(
-    #     lambda inp: tf.scatter_nd(inp[0], inp[1],
-    #                               (self.batch_size,) + image_size +
-    #                               (nb_channels,)),
-    #     name="pillars/scatter_nd")([input_indices, x])
-    pillars = tf.scatter_nd(input_indices, x,
-                            (batch_size, ) + image_size + (nb_channels, ))
-
-    # reverse dimensions (x,y) to match OGM coordinates (size_x-x, size_y-y)
-    pillars = tf.reverse(pillars, [1, 2])
-
-    # 2D CNN backbone
-
-    # Block1(S, 4, C)
-    x = pillars
-    for n in range(4):
-        S = (2, 2) if n == 0 else (1, 1)
-        x = tf.keras.layers.Conv2D(nb_channels, (3, 3),
-                                   strides=S,
-                                   padding="same",
-                                   activation="relu",
-                                   name="cnn/block1/conv2d%i" % n)(x)
-        x = tf.keras.layers.BatchNormalization(name="cnn/block1/bn%i" % n,
-                                               fused=True)(x)
-    x1 = x
-
-    # Block2(2S, 6, 2C)
-    for n in range(6):
-        S = (2, 2) if n == 0 else (1, 1)
-        x = tf.keras.layers.Conv2D(2 * nb_channels, (3, 3),
-                                   strides=S,
-                                   padding="same",
-                                   activation="relu",
-                                   name="cnn/block2/conv2d%i" % n)(x)
-        x = tf.keras.layers.BatchNormalization(name="cnn/block2/bn%i" % n,
-                                               fused=True)(x)
-    x2 = x
-
-    # Block3(4S, 6, 4C)
-    for n in range(6):
-        S = (2, 2) if n == 0 else (1, 1)
-        x = tf.keras.layers.Conv2D(4 * nb_channels, (3, 3),
-                                   strides=S,
-                                   padding="same",
-                                   activation="relu",
-                                   name="cnn/block3/conv2d%i" % n)(x)
-        x = tf.keras.layers.BatchNormalization(name="cnn/block3/bn%i" % n,
-                                               fused=True)(x)
-    x3 = x
-
-    # Up1 (S, S, 2C)
-    up1 = tf.keras.layers.Conv2DTranspose(2 * nb_channels, (3, 3),
-                                          strides=(1, 1),
-                                          padding="same",
-                                          activation="relu",
-                                          name="cnn/up1/conv2dt")(x1)
-    up1 = tf.keras.layers.BatchNormalization(name="cnn/up1/bn",
-                                             fused=True)(up1)
-
-    # Up2 (2S, S, 2C)
-    up2 = tf.keras.layers.Conv2DTranspose(2 * nb_channels, (3, 3),
-                                          strides=(2, 2),
-                                          padding="same",
-                                          activation="relu",
-                                          name="cnn/up2/conv2dt")(x2)
-    up2 = tf.keras.layers.BatchNormalization(name="cnn/up2/bn",
-                                             fused=True)(up2)
-
-    # Up3 (4S, S, 2C)
-    up3 = tf.keras.layers.Conv2DTranspose(2 * nb_channels, (3, 3),
-                                          strides=(4, 4),
-                                          padding="same",
-                                          activation="relu",
-                                          name="cnn/up3/conv2dt")(x3)
-    up3 = tf.keras.layers.BatchNormalization(name="cnn/up3/bn",
-                                             fused=True)(up3)
-
-    # Concat
-    concat = tf.keras.layers.Concatenate(name="cnn/concatenate")(
-        [up1, up2, up3])
+    # Point Pillars Feature Net
+    input_pillars, input_indices, concat = getPointPillarsModel(
+        tuple([Xn, Yn]), int(max_pillars), int(max_points_per_pillar),
+        int(number_features), int(number_channels), batch_size)
 
     # Evidential Prediction Head
     prediction = tf.keras.layers.Conv2D(2, (3, 3),
@@ -174,6 +53,7 @@ def getModel(y_min, y_max, x_min, x_max, step_x_size, step_y_size,
 def getLoss():
 
     return ExpectedMeanSquaredError()
+
 
 class ExpectedMeanSquaredError(tf.keras.losses.Loss):
     def __init__(self, *args, **kwargs):
@@ -190,9 +70,9 @@ class ExpectedMeanSquaredError(tf.keras.losses.Loss):
             tf.reduce_sum((y_true - prob)**2, axis=-1, keepdims=True),
             tf.reduce_sum(prob * (1 - prob) / (S + 1), axis=-1, keepdims=True))
         alpha = y_pred * (1 - y_true) + 1
-        KL_reg = tf.minimum(1.0, tf.cast(
-            self.epoch_num / 10, tf.float32)) * self.kl_regularization(
-                alpha, num_evidential_classes)
+        KL_reg = tf.minimum(1.0, tf.cast(self.epoch_num / 10,
+                                         tf.float32)) * self.kl_regularization(
+                                             alpha, num_evidential_classes)
         loss = loss + KL_reg
 
         # higher weight for loss on evidence for state "occupied" because it is underrepresented in training data

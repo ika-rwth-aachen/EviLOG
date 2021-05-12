@@ -231,9 +231,7 @@ class LidarGridMapping():
             model.load_weights(conf.model_weights)
         optimizer = tf.keras.optimizers.Adam(learning_rate=conf.learning_rate)
         loss = architecture.getLoss()
-        metrics = [
-            tf.keras.metrics.KLDivergence()
-        ]
+        metrics = [tf.keras.metrics.KLDivergence()]
         model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
         print(f"Compiled model {os.path.basename(conf.model)}")
 
@@ -265,7 +263,7 @@ class LidarGridMapping():
         class EpochCallback(tf.keras.callbacks.Callback):
             def on_epoch_begin(self, epoch, logs={}):
                 K.set_value(self.model.loss.epoch_num, epoch)
-        
+
         epoch_cb = EpochCallback()
 
         callbacks = [
