@@ -112,29 +112,113 @@ class LidarGridMapping():
             type=str,
             default=None,
             help="weights file of trained model for training continuation")
+        parser.add(
+            "-xmi",
+            "--x-min",
+            type=float,
+            default=None,
+            help="minimum x coordinate in point cloud")
+        parser.add(
+            "-xma",
+            "--x-max",
+            type=float,
+            default=None,
+            help="maximum x coordinate in point cloud")
+        parser.add(
+            "-ymi",
+            "--y-min",
+            type=float,
+            default=None,
+            help="minimum y coordinate in point cloud")
+        parser.add(
+            "-yma",
+            "--y-max",
+            type=float,
+            default=None,
+            help="maximum y coordinate in point cloud")
+        parser.add(
+            "-zmi",
+            "--z-min",
+            type=float,
+            default=None,
+            help="minimum z coordinate in point cloud")
+        parser.add(
+            "-zma",
+            "--z-max",
+            type=float,
+            default=None,
+            help="maximum z coordinate in point cloud")
+        parser.add(
+            "-sx",
+            "--step-x-size",
+            type=float,
+            default=None,
+            help="step size in x direction")
+        parser.add(
+            "-sy",
+            "--step-y-size",
+            type=float,
+            default=None,
+            help="step size in y direction")
+        parser.add(
+            "-ith",
+            "--intensity-threshold",
+            type=int,
+            default=None,
+            help="threshold for point intensity")
+        parser.add(
+            "-gmx",
+            "--grid-map-size-x",
+            type=int,
+            default=None,
+            help="grid map size in x direction")
+        parser.add(
+            "-gmy",
+            "--grid-map-size-y",
+            type=int,
+            default=None,
+            help="grid map size in y direction")
+        parser.add(
+            "-mpp",
+            "--max-points-per-pillar",
+            type=int,
+            default=None,
+            help="maximum number of points in one pillar")
+        parser.add(
+            "-mp",
+            "--max-pillars",
+            type=int,
+            default=None,
+            help="maximum number of pillars")
+        parser.add(
+            "-nf",
+            "--number-features",
+            type=int,
+            default=None,
+            help="number of features")
+        parser.add(
+            "-nc",
+            "--number-channels",
+            type=int,
+            default=None,
+            help="number of channels")
         conf, unknown = parser.parse_known_args()
 
         self.batch_size = conf.batch_size
-
-        # input point cloud
-        self.y_min = -28.16
-        self.y_max = 28.16
-        self.x_min = -40.96
-        self.x_max = 40.96
-        self.z_min = -3.0
-        self.z_max = 1.0
-        self.step_x_size = 0.16
-        self.step_y_size = 0.16
-        self.intensity_threshold = 100
-
-        # output grid map
-        self.label_resize_shape = [256, 176]
-
-        # PointPillars Feature Net parameters
-        self.max_points_per_pillar = 100
-        self.max_pillars = 10000
-        self.number_features = 9
-        self.number_channels = 64
+        self.y_min = conf.y_min
+        self.y_max = conf.y_max
+        self.x_min = conf.x_min
+        self.x_max = conf.x_max
+        self.z_min = conf.z_min
+        self.z_max = conf.z_max
+        self.step_x_size = conf.step_x_size
+        self.step_y_size = conf.step_y_size
+        self.intensity_threshold = conf.intensity_threshold
+        self.label_resize_shape = [conf.grid_map_size_x, conf.grid_map_size_y]
+        self.max_points_per_pillar = conf.max_points_per_pillar
+        self.max_pillars = conf.max_pillars
+        self.number_features = conf.number_features
+        self.number_channels = conf.number_channels
 
         # determine absolute filepaths
         conf.input_training = utils.abspath(conf.input_training)
