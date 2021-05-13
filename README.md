@@ -79,7 +79,6 @@ Start training the model by passing the provided config file [model/config.yml](
 
 ```bash
 cd model/
-export TF_FORCE_GPU_ALLOW_GROWTH=true  # try this if cudnn fails to initialize
 ./train.py -c config.yml
 ```
 
