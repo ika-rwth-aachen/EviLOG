@@ -25,11 +25,8 @@
 import os
 import sys
 import numpy as np
-import random
 import tensorflow as tf
 import cv2
-import xml.etree.ElementTree as xmlET
-from tqdm import tqdm
 import importlib
 import math
 from pypcd import pypcd

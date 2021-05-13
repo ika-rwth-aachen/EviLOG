@@ -24,77 +24,17 @@
 # SOFTWARE.
 # ==============================================================================
 
-import importlib
 import os
-import sys
 import tqdm
 import numpy as np
 import cv2
 import tensorflow as tf
-import configargparse
 
 import utils
+import config
 
-# parse parameters from config file or CLI
-parser = configargparse.ArgParser()
-parser.add("-c", "--config", is_config_file=True, help="config file")
-parser.add("-ip",
-           "--input-testing",
-           type=str,
-           required=True,
-           help="directory/directories of input samples for testing")
-parser.add("-np",
-           "--max-samples-testing",
-           type=int,
-           default=None,
-           help="maximum number of testing samples")
-parser.add("-m",
-           "--model",
-           type=str,
-           required=True,
-           help="Python file defining the neural network")
-parser.add("-bs",
-           "--batch-size",
-           type=int,
-           required=True,
-           help="batch size for training")
-parser.add("-mw",
-           "--model-weights",
-           type=str,
-           required=True,
-           help="weights file of trained model")
-parser.add("-pd",
-           "--prediction-dir",
-           type=str,
-           required=True,
-           help="output directory for storing predictions of testing data")
-conf, unknown = parser.parse_known_args()
 
-# determine absolute filepaths
-conf.input_testing = utils.abspath(conf.input_testing)
-conf.model = utils.abspath(conf.model)
-conf.model_weights = utils.abspath(conf.model_weights)
-conf.prediction_dir = utils.abspath(conf.prediction_dir)
-
-# input point cloud
-conf.y_min = -28.16
-conf.y_max = 28.16
-conf.x_min = -40.96
-conf.x_max = 40.96
-conf.z_min = -3.0
-conf.z_max = 1.0
-conf.step_x_size = 0.16
-conf.step_y_size = 0.16
-conf.intensity_threshold = 100
-
-# output grid map
-conf.label_resize_shape = [256, 176]
-
-# PointPillars Feature Net parameters
-conf.max_points_per_pillar = 100
-conf.max_pillars = 10000
-conf.number_features = 9
-conf.number_channels = 64
+conf = config.getConf()
 
 # load network architecture module
 architecture = utils.load_module(conf.model)

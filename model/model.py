@@ -23,7 +23,6 @@
 # ==============================================================================
 
 import tensorflow as tf
-import numpy as np
 
 import utils
 from third_party.point_pillars import getPointPillarsModel
