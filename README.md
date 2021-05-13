@@ -39,7 +39,7 @@ We suggest to create a new **[conda](https://docs.conda.io/) environment** with 
 conda env create -f environment.yml
 ```
 
-<u>Alternatively</u>, it is possible to setup a **Python 3.7** virtual environment (e.g. by using _virtualenv_). Inside the virtual environment, users can then use _pip_ to install all package dependencies.
+<u>Alternatively</u>, it is possible to install all package dependencies in a **Python 3.7** environment (e.g. by using _virtualenv_) using _pip_:
 
 ```bash
 pip install -r requirements.txt
@@ -48,13 +48,13 @@ pip install -r requirements.txt
 
 ## Data
 
-We provide all data that was used to produce the results in our paper. We used all training samples and randomly picked 100 samples from both the test and validation dataset.
+We provide all data that is required to reproduce the results in our paper.
 
 - **Synthetic training and validation data** consisting of lidar point clouds (as *pcd* files) and occupancy grid maps (as *png* files)
   - 10.000 training samples
-  - 1.076 validation samples
-  - 113 test samples
-- **Real-world input data** that was recorded with a *Velodyne VLP32C* lidar sensor (355 point clouds)
+  - 1.000 validation samples
+  - 100 test samples
+- **Real-world input data** that was recorded with a *Velodyne VLP32C* lidar sensor (300 point clouds)
 
 We are very interested in the impact of our provided dataset. Please [fill out this form](https://forms.gle/PYYL9Q8ZHKW4X5ZQ8) to get access. After submitting the form, you will receive a mail from Google Drive and will be able to download the dataset within 1 hour. Unfortunately, sharing with specific persons requires a Google account.
 
