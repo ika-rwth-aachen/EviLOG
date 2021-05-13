@@ -24,13 +24,9 @@
 # SOFTWARE.
 # ==============================================================================
 
-import configargparse
-import importlib
 import os
-import sys
 from datetime import datetime
 import numpy as np
-import cv2
 import tensorflow as tf
 import tensorflow.keras.backend as K
 import tensorflow_addons as tfa
@@ -38,114 +34,28 @@ import random
 import math
 
 import utils
-
+import config
+from metrics import EvidentialAccuracy
 
 class LidarGridMapping():
     def __init__(self):
-        # parse parameters from config file or CLI
-        parser = configargparse.ArgParser()
-        parser.add("-c", "--config", is_config_file=True, help="config file")
-        parser.add("-it",
-                   "--input-training",
-                   type=str,
-                   required=True,
-                   help="directory of input samples for training")
-        parser.add("-lt",
-                   "--label-training",
-                   type=str,
-                   required=True,
-                   help="directory of label samples for training")
-        parser.add("-nt",
-                   "--max-samples-training",
-                   type=int,
-                   default=None,
-                   help="maximum number of training samples")
-        parser.add(
-            "-iv",
-            "--input-validation",
-            type=str,
-            required=True,
-            help="directory/directories of input samples for validation")
-        parser.add("-lv",
-                   "--label-validation",
-                   type=str,
-                   required=True,
-                   help="directory of label samples for validation")
-        parser.add("-nv",
-                   "--max-samples-validation",
-                   type=int,
-                   default=None,
-                   help="maximum number of validation samples")
-        parser.add("-m",
-                   "--model",
-                   type=str,
-                   required=True,
-                   help="Python file defining the neural network")
-        parser.add("-e",
-                   "--epochs",
-                   type=int,
-                   required=True,
-                   help="number of epochs for training")
-        parser.add("-bs",
-                   "--batch-size",
-                   type=int,
-                   required=True,
-                   help="batch size for training")
-        parser.add("-lr",
-                   "--learning-rate",
-                   type=float,
-                   default=1e-4,
-                   help="learning rate of Adam optimizer for training")
-        parser.add("-si",
-                   "--save-interval",
-                   type=int,
-                   default=5,
-                   help="epoch interval between exports of the model")
-        parser.add("-o",
-                   "--output-dir",
-                   type=str,
-                   required=True,
-                   help="output dir for TensorBoard and models")
-        parser.add(
-            "-mw",
-            "--model-weights",
-            type=str,
-            default=None,
-            help="weights file of trained model for training continuation")
-        conf, unknown = parser.parse_known_args()
+        conf = config.getConf()
 
         self.batch_size = conf.batch_size
-
-        # input point cloud
-        self.y_min = -28.16
-        self.y_max = 28.16
-        self.x_min = -40.96
-        self.x_max = 40.96
-        self.z_min = -3.0
-        self.z_max = 1.0
-        self.step_x_size = 0.16
-        self.step_y_size = 0.16
-        self.intensity_threshold = 100
-
-        # output grid map
-        self.label_resize_shape = [256, 176]
-
-        # PointPillars Feature Net parameters
-        self.max_points_per_pillar = 100
-        self.max_pillars = 10000
-        self.number_features = 9
-        self.number_channels = 64
-
-        # determine absolute filepaths
-        conf.input_training = utils.abspath(conf.input_training)
-        conf.label_training = utils.abspath(conf.label_training)
-        conf.input_validation = utils.abspath(conf.input_validation)
-        conf.label_validation = utils.abspath(conf.label_validation)
-        conf.model = utils.abspath(conf.model)
-        conf.model_weights = utils.abspath(
-            conf.model_weights
-        ) if conf.model_weights is not None else conf.model_weights
-        conf.output_dir = utils.abspath(conf.output_dir)
+        self.y_min = conf.y_min
+        self.y_max = conf.y_max
+        self.x_min = conf.x_min
+        self.x_max = conf.x_max
+        self.z_min = conf.z_min
+        self.z_max = conf.z_max
+        self.step_x_size = conf.step_x_size
+        self.step_y_size = conf.step_y_size
+        self.intensity_threshold = conf.intensity_threshold
+        self.label_resize_shape = conf.label_resize_shape
+        self.max_points_per_pillar = conf.max_points_per_pillar
+        self.max_pillars = conf.max_pillars
+        self.number_features = conf.number_features
+        self.number_channels = conf.number_channels
 
         # load network architecture module
         architecture = utils.load_module(conf.model)
@@ -231,9 +141,7 @@ class LidarGridMapping():
             model.load_weights(conf.model_weights)
         optimizer = tf.keras.optimizers.Adam(learning_rate=conf.learning_rate)
         loss = architecture.getLoss()
-        metrics = [
-            tf.keras.metrics.KLDivergence()
-        ]
+        metrics = [tf.keras.metrics.KLDivergence(), EvidentialAccuracy()]
         model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
         print(f"Compiled model {os.path.basename(conf.model)}")
 
@@ -265,7 +173,7 @@ class LidarGridMapping():
         class EpochCallback(tf.keras.callbacks.Callback):
             def on_epoch_begin(self, epoch, logs={}):
                 K.set_value(self.model.loss.epoch_num, epoch)
-        
+
         epoch_cb = EpochCallback()
 
         callbacks = [

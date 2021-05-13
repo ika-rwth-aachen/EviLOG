@@ -25,11 +25,8 @@
 import os
 import sys
 import numpy as np
-import random
 import tensorflow as tf
 import cv2
-import xml.etree.ElementTree as xmlET
-from tqdm import tqdm
 import importlib
 import math
 from pypcd import pypcd
@@ -247,6 +244,7 @@ def rotate_pointcloud(pointcloud, angle):
     pointcloud[:, 0:2] = (rotation @ pointcloud[:, 0:2].T).T
 
     return pointcloud
+
 
 def naive_geometric_ISM(pcd_file_path,
                         x_min,
