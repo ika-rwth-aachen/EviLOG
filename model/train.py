@@ -35,6 +35,7 @@ import math
 
 import utils
 import config
+from metrics import EvidentialAccuracy
 
 class LidarGridMapping():
     def __init__(self):
@@ -140,7 +141,7 @@ class LidarGridMapping():
             model.load_weights(conf.model_weights)
         optimizer = tf.keras.optimizers.Adam(learning_rate=conf.learning_rate)
         loss = architecture.getLoss()
-        metrics = [tf.keras.metrics.KLDivergence()]
+        metrics = [tf.keras.metrics.KLDivergence(), EvidentialAccuracy()]
         model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
         print(f"Compiled model {os.path.basename(conf.model)}")
 
