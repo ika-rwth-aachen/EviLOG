@@ -87,22 +87,27 @@ You can visualize training progress by pointing *TensorBoard* to the output dire
 
 ### Evaluation
 
-Before evaluating your trained model, set the parameter `model-weights` to point to the `best_weights.hdf5` file in the `Checkpoints` folder of its model directory. Then run evaluation to compute metrics and compare the results of the deep ISM to a geometric ISM.
+Before evaluating your trained model on the test data, set the parameter `model-weights` to point to the `best_weights.hdf5` file in the `Checkpoints` folder of its model directory.
 
 ```bash
-./evaluate.py -c config.yml --model-weights output/<YOUR-TIMESTAMP>/Checkpoints/best_weights.hdf5
+./evaluate.py -c config.yml --input-validation ../data/input_test --label-validation ../data/label_test --model-weights output/<YOUR-TIMESTAMP>/Checkpoints/best_weights.hdf5
 ```
 
-The evaluation results will be printed at the end of evaluation and also be exported to the `Evaluation` folder in your model directory. This also comprises a comparison between occupancy grid maps predicted by the neural network and grid maps created using a simple geometric inverse sensor model.
-
-To evaluate on test data instead of validation data, change the parameters `input-validation` and `label-validation` in [config.yml](model/config.yml).
+The evaluation results will be exported to the `Evaluation` folder in your model directory. This also comprises a comparison between occupancy grid maps predicted by the neural network and grid maps created using a simple geometric inverse sensor model.
 
 ### Testing
 
-To actually see the predictions your network makes, try it out on unseen input point clouds, such as the provided real-world input point clouds. The predicted occupancy grid maps are exported to the directory specified by the parameter `output-dir-testing`.
+To actually see the predictions your network makes, try it out on unseen input point clouds, such as the provided test data or real-world input point clouds. The predicted occupancy grid maps are exported to the directory specified by the parameter `output-dir-testing`.
+
+Prediction using **synthetic test data**:
 
 ```bash
 ./predict.py -c config.yml --model-weights output/<YOUR-TIMESTAMP>/Checkpoints/best_weights.hdf5 --prediction-dir output/<YOUR-TIMESTAMP>/Predictions
 ```
 
-To test on real-world input data instead of synthetic test data, change the parameter `input-testing`in [config.yml](model/config.yml).
+Prediction using **real-world input point clouds**:
+
+```bash
+./predict.py -c config.yml --input-testing ../data/input_real --model-weights output/<YOUR-TIMESTAMP>/Checkpoints/best_weights.hdf5 --prediction-dir output/<YOUR-TIMESTAMP>/Predictions-Real
+```
+
