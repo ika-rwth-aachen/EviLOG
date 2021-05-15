@@ -95,7 +95,7 @@ Before evaluating your trained model, set the parameter `model-weights` to point
 
 The evaluation results will be printed at the end of evaluation and also be exported to the `Evaluation` folder in your model directory. This also comprises a comparison between occupancy grid maps predicted by the neural network and grid maps created using a simple geometric inverse sensor model.
 
-To evaluate on test data instead of validation data, change the parameters `input-validation` and `abel-validation` in [config.yml](model/config.yml).
+To evaluate on test data instead of validation data, change the parameters `input-validation` and `label-validation` in [config.yml](model/config.yml).
 
 ### Testing
 
