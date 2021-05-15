@@ -1,26 +1,30 @@
+## Training ##
+max-samples-training: 10000
 input-training: ../data/input_train
 label-training: ../data/label_train
-max-samples-training: 10000
-input-validation: ../data/input_valid
-label-validation: ../data/label_valid
-max-samples-validation: 1000
-
 model: model.py
 epochs: 17
 batch-size: 1
 learning-rate: 1e-4
-
 save-interval: 1
 output-dir: output
 
+## Evaluation ##
 # model-weights:
+max-samples-validation: 1000
+# a. use the following two lines to evaluate on validation data (e.g. during training)
+input-validation: ../data/input_valid
+label-validation: ../data/label_valid
+# b. use the following two lines to evaluate on test data
+#input-validation: ../data/input_test
+#label-validation: ../data/label_test
 
-# for predict.py only
-input-testing: ../data/input_test
+## Prediction ##
 max-samples-testing: 100
+input-testing: ../data/input_real
 # prediction-dir:
 
-# input point cloud
+## Model Parameters ##
 y-min: -28.16
 y-max: 28.16
 x-min: -40.96
@@ -30,12 +34,8 @@ z-max: 1.0
 step-x-size: 0.16
 step-y-size: 0.16
 intensity-threshold: 100
-
-# output grid map
 grid-map-size-x: 256
 grid-map-size-y: 176
-
-# PointPillars Feature Net parameters #
 max-points-per-pillar: 100
 max-pillars: 10000
 number-features: 9
