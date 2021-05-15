@@ -21,7 +21,8 @@ label-validation: ../data/label_valid
 
 ## Prediction ##
 max-samples-testing: 100
-input-testing: ../data/input_real
+input-testing: ../data/input_test
+# input-testing: ../data/input_real
 # prediction-dir:
 
 ## Model Parameters ##
