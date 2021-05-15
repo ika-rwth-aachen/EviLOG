@@ -1,6 +1,6 @@
 # <img src="assets/logo.png" width=50> Deep Lidar Grid Mapping
 
-<img src="assets/teaser.gif" align="right" width=320 height=200>
+<img src="assets/teaser.gif" align="right" width=176 height=256>
 
 This repository provides the dataset as well as the training pipeline that was used in our paper:
 
