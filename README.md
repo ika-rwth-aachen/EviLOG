@@ -39,7 +39,7 @@ We suggest to create a new **[conda](https://docs.conda.io/) environment** with 
 conda env create -f environment.yml
 ```
 
-<u>Alternatively</u>, it is possible to install all package dependencies in a **Python 3.7** environment (e.g. by using _virtualenv_) using _pip_:
+<u>Alternatively</u>, it is possible to install all package dependencies in a **Python 3.7** environment (e.g. by using _virtualenv_) with _pip_:
 
 ```bash
 pip install -r requirements.txt
@@ -50,7 +50,7 @@ pip install -r requirements.txt
 
 We provide all data that is required to reproduce the results in our paper.
 
-- **Synthetic training and validation data** consisting of lidar point clouds (as *pcd* files) and occupancy grid maps (as *png* files)
+- **Synthetic training and validation data** consisting of lidar point clouds (as *pcd* files) and evidential occupancy grid maps (as *png* files)
   - 10.000 training samples
   - 1.000 validation samples
   - 100 test samples
@@ -95,6 +95,8 @@ Before evaluating your trained model, set the parameter `model-weights` to point
 
 The evaluation results will be printed at the end of evaluation and also be exported to the `Evaluation` folder in your model directory. This also comprises a comparison between occupancy grid maps predicted by the neural network and grid maps created using a simple geometric inverse sensor model.
 
+To evaluate on test data instead of validation data, change the parameters `input-validation` and `abel-validation` in [config.yml](model/config.yml).
+
 ### Testing
 
 To actually see the predictions your network makes, try it out on unseen input point clouds, such as the provided real-world input point clouds. The predicted occupancy grid maps are exported to the directory specified by the parameter `output-dir-testing`.
@@ -102,3 +104,5 @@ To actually see the predictions your network makes, try it out on unseen input p
 ```bash
 ./predict.py -c config.yml --model-weights output/<YOUR-TIMESTAMP>/Checkpoints/best_weights.hdf5 --prediction-dir output/<YOUR-TIMESTAMP>/Predictions
 ```
+
+To test on real-world input data instead of synthetic test data, change the parameter `input-testing`in [config.yml](model/config.yml).
