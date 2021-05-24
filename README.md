@@ -64,7 +64,7 @@ Put the downloaded tar archive into the [data](./data) folder and extract it:
 
 ```bash
 # deep_lidar_grid_mapping/data/
-tar xf EviLOG_2021.tar.gz
+tar xvf EviLOG_2021.tar.gz
 ```
 
 ## Training
