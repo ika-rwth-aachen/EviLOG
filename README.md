@@ -48,7 +48,7 @@ pip install -r requirements.txt
 
 ## Data
 
-We provide all data that is required to reproduce the results in our paper.
+We provide all data that is required to reproduce the results in our paper. The *EviLOG* dataset comprises:
 
 - **Synthetic training and validation data** consisting of lidar point clouds (as *pcd* files) and evidential occupancy grid maps (as *png* files)
   - 10.000 training samples
