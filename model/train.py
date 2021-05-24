@@ -126,7 +126,7 @@ class LidarGridMapping():
         dataValid = dataValid.map(
             self.parse_sample,
             num_parallel_calls=tf.data.experimental.AUTOTUNE)
-        dataValid = dataValid.batch(1)
+        dataValid = dataValid.batch(conf.batch_size, drop_remainder=True)
         dataValid = dataValid.repeat(conf.epochs)
         dataValid = dataValid.prefetch(1)
         print("Built data pipeline for validation")
@@ -183,7 +183,7 @@ class LidarGridMapping():
         # start training
         print("Starting training...")
         n_batches_train = len(files_train_label) // conf.batch_size
-        n_batches_valid = len(files_valid_label)
+        n_batches_valid = len(files_valid_label) // conf.batch_size
         model.fit(dataTrain,
                   epochs=conf.epochs,
                   steps_per_epoch=n_batches_train,

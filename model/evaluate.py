@@ -53,7 +53,7 @@ model = architecture.getModel(conf.y_min, conf.y_max, conf.x_min, conf.x_max,
                               conf.step_x_size, conf.step_y_size,
                               conf.max_points_per_pillar, conf.max_pillars,
                               conf.number_features, conf.number_channels,
-                              conf.label_resize_shape, conf.batch_size)
+                              conf.label_resize_shape, 1)
 model.load_weights(conf.model_weights)
 print(f"Reloaded model from {conf.model_weights}")
 
@@ -140,6 +140,16 @@ for k in tqdm.tqdm(range(n_samples)):
         float(tf.reduce_mean(prob[..., 1])))
     evaluation_dict['deep']['KL_distance'].append(float(kld(label,
                                                             prediction)))
+    
+    # save predicted grid map
+    prediction_dir = os.path.join(eval_dir, "predictions")
+    if not os.path.exists(prediction_dir):
+        os.makedirs(prediction_dir)
+    prediction_img = utils.evidence_to_ogm(prediction)
+    output_file = os.path.join(prediction_dir,
+                               os.path.basename(files_input[k]))
+    cv2.imwrite(output_file + ".png",
+                cv2.cvtColor(prediction_img, cv2.COLOR_RGB2BGR))
 
     # create "naive" occupancy grid map for comparision
     naive_ogm = utils.naive_geometric_ISM(input_file, conf.x_min, conf.x_max,
