@@ -1,4 +1,4 @@
-# Deep Evidential Lidar Occupancy Grid Mapping
+# EviLOG: Evidential Lidar Occupancy Grid Mapping
 
 <img src="assets/teaser.gif" align="right" width=176 height=256>
 
