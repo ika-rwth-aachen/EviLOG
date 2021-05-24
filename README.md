@@ -1,4 +1,4 @@
-# <img src="assets/logo.png" width=50> Deep Lidar Grid Mapping
+# EviLOG: Evidential Lidar Occupancy Grid Mapping
 
 <img src="assets/teaser.gif" align="right" width=176 height=256>
 
@@ -48,7 +48,7 @@ pip install -r requirements.txt
 
 ## Data
 
-We provide all data that is required to reproduce the results in our paper.
+We provide all data that is required to reproduce the results in our paper. The *EviLOG* dataset comprises:
 
 - **Synthetic training and validation data** consisting of lidar point clouds (as *pcd* files) and evidential occupancy grid maps (as *png* files)
   - 10.000 training samples
@@ -56,7 +56,7 @@ We provide all data that is required to reproduce the results in our paper.
   - 100 test samples
 - **Real-world input data** that was recorded with a *Velodyne VLP32C* lidar sensor (300 point clouds)
 
-We are very interested in the impact of our provided dataset. Please [fill out this form](https://forms.gle/PYYL9Q8ZHKW4X5ZQ8) to get access. After submitting the form, you will receive a mail from Google Drive and will be able to download the dataset within 1 hour. Unfortunately, sharing with specific persons requires a Google account.
+We are very interested in the impact of our provided dataset. Please [fill out this form](https://www.unicaragil.de/en/evilog) to receive a download link that is valid for 24 hours via email.
 
 _**Note**: Download size is approximately 3.5 GB, uncompressed size is approximately 4.3 GB._
 
@@ -64,7 +64,7 @@ Put the downloaded tar archive into the [data](./data) folder and extract it:
 
 ```bash
 # deep_lidar_grid_mapping/data/
-tar xf LidarGridMapping2021.tar.gz
+tar xvf EviLOG_2021.tar.gz
 ```
 
 ## Training

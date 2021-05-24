@@ -51,7 +51,7 @@ model = architecture.getModel(conf.y_min, conf.y_max, conf.x_min, conf.x_max,
                               conf.step_x_size, conf.step_y_size,
                               conf.max_points_per_pillar, conf.max_pillars,
                               conf.number_features, conf.number_channels,
-                              conf.label_resize_shape, conf.batch_size)
+                              conf.label_resize_shape, 1)
 model.load_weights(conf.model_weights)
 print(f"Reloaded model from {conf.model_weights}")
 

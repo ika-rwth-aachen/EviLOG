@@ -12,12 +12,8 @@ output-dir: output
 ## Evaluation ##
 # model-weights:
 max-samples-validation: 1000
-# a. use the following two lines to evaluate on validation data (e.g. during training)
 input-validation: ../data/input_valid
 label-validation: ../data/label_valid
-# b. use the following two lines to evaluate on test data
-#input-validation: ../data/input_test
-#label-validation: ../data/label_test
 
 ## Prediction ##
 max-samples-testing: 100

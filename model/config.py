@@ -89,7 +89,7 @@ def getConf():
     parser.add("-bs",
                 "--batch-size",
                 type=int,
-                required=True,
+                default=1,
                 help="batch size for training")
     parser.add("-lr",
                 "--learning-rate",
