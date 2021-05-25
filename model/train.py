@@ -37,6 +37,7 @@ import utils
 import config
 from metrics import EvidentialAccuracy
 
+
 class LidarGridMapping():
     def __init__(self):
         conf = config.getConf()

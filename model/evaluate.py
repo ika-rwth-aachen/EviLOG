@@ -140,7 +140,7 @@ for k in tqdm.tqdm(range(n_samples)):
         float(tf.reduce_mean(prob[..., 1])))
     evaluation_dict['deep']['KL_distance'].append(float(kld(label,
                                                             prediction)))
-    
+
     # save predicted grid map
     prediction_dir = os.path.join(eval_dir, "predictions")
     if not os.path.exists(prediction_dir):

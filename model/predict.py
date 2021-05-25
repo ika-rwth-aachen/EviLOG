@@ -33,7 +33,6 @@ import tensorflow as tf
 import utils
 import config
 
-
 conf = config.getConf()
 
 # load network architecture module
