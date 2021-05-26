@@ -111,6 +111,11 @@ def getConf():
                type=str,
                default=None,
                help="weights file of trained model for training continuation")
+    parser.add("-mwe",
+               "--model-weights-epoch",
+               type=int,
+               default=0,
+               help="epoch of weights file")
     parser.add("-xmi",
                "--x-min",
                type=float,

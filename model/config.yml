@@ -11,6 +11,7 @@ output-dir: output
 
 ## Evaluation ##
 # model-weights:
+# model-weights-epoch:
 max-samples-validation: 1000
 input-validation: ../data/input_valid
 label-validation: ../data/label_valid

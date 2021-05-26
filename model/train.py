@@ -187,6 +187,7 @@ class LidarGridMapping():
         n_batches_valid = len(files_valid_label) // conf.batch_size
         model.fit(dataTrain,
                   epochs=conf.epochs,
+                  initial_epoch=conf.model_weights_epoch,
                   steps_per_epoch=n_batches_train,
                   validation_data=dataValid,
                   validation_freq=1,
