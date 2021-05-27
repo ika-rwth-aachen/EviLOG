@@ -159,7 +159,7 @@ def getConf():
     parser.add("-mpd",
                "--min-point-distance",
                type=float,
-               default=0.0,
+               default=None,
                help="minimum distance for point")
     parser.add("-ith",
                "--intensity-threshold",

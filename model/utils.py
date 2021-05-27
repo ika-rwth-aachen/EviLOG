@@ -181,26 +181,20 @@ def make_point_pillars(points: np.ndarray,
                        y_max,
                        z_min,
                        z_max,
-                       min_distance=0.0,
+                       min_distance=None,
                        print_time=False):
 
     assert points.ndim == 2
     assert points.shape[1] == 4  # (x, y, z, i) in columns
     assert points.dtype == np.float32
 
-    # remove points under minimum distance
-    valid = []
-    for point in points:
-        if np.linalg.norm(point[0:3]) > min_distance:
-            valid.append(True)
-        else:
-            valid.append(False)
-    points = points[valid]
+    if min_distance is None:
+        min_distance = -1
 
     pillars, indices = createPillars(points, max_points_per_pillar,
                                      max_pillars, step_x_size, step_y_size,
                                      x_min, x_max, y_min, y_max, z_min, z_max,
-                                     print_time)
+                                     print_time, min_distance)
 
     return pillars, indices
 
@@ -260,7 +254,7 @@ def naive_geometric_ISM(pcd_file_path,
                         step_size_y,
                         z_min_obstacle=-1.0,
                         z_max_obstacle=0.5,
-                        min_distance=0.0):
+                        min_distance=None):
 
     point_cloud = readPointCloud(pcd_file_path)
 
@@ -273,7 +267,7 @@ def naive_geometric_ISM(pcd_file_path,
     for point in point_cloud:
         x, y, z = point[0:3]
 
-        if z_min_obstacle < z < z_max_obstacle and np.linalg.norm(point[0:3]) > min_distance:
+        if z_min_obstacle < z < z_max_obstacle and (min_distance is None or np.linalg.norm(point[0:3]) > min_distance):
             x = int((x - x_min) / step_size_x)
             y = int((y - y_min) / step_size_y)
             cv2.line(naive_ogm, (cells_y - y, cells_x - x),
