@@ -58,7 +58,7 @@ We provide all data that is required to reproduce the results in our paper. The 
   - 100 test samples
 - **Real-world input data** that was recorded with a *Velodyne VLP32C* lidar sensor (300 point clouds)
 
-We are very interested in the impact of our provided dataset. Please [fill out this form](https://www.unicaragil.de/en/evilog) to receive a download link that is valid for 24 hours via email.
+We are very interested in the impact of our provided dataset. Please [fill out this form](https://www.unicaragil.de/en/evilog) and we will send you a download link that is valid for 24 hours.
 
 _**Note**: Download size is approximately 3.5 GB, uncompressed size is approximately 4.3 GB._
 
