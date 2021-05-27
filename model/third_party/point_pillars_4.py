@@ -13,6 +13,7 @@
 #   - do not use lambda function for tf.scatter_nd
 #   - removed detection head
 #   - reverse dimensions to match grid map coordinates
+#   - added dropout of 0.2 in loops of Block1, Block2 and Block3
 # ==============================================================================
 
 import tensorflow as tf
