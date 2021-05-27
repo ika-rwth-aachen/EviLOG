@@ -1,4 +1,4 @@
-name: EviLOG
+name: evilog
 channels:
   - conda-forge
   - hcc
