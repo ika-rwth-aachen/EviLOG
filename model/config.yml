@@ -3,18 +3,18 @@ max-samples-training: 10000
 input-training: ../data/input_train
 label-training: ../data/label_train
 model: model.py
-epochs: 17
+epochs: 150
 batch-size: 5
 learning-rate: 1e-4
 save-interval: 1
 output-dir: output
 
 ## Evaluation ##
-# model-weights:
-# model-weights-epoch:
 max-samples-validation: 1000
 input-validation: ../data/input_valid
 label-validation: ../data/label_valid
+# model-weights:
+# model-weights-epoch:
 
 ## Prediction ##
 max-samples-testing: 100
