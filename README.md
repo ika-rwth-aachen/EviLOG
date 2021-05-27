@@ -36,12 +36,14 @@ We hope our paper, data and code can help in your research. If this is the case,
 We suggest to create a new **[conda](https://docs.conda.io/) environment** with all required packages. This will automatically install the GPU version of TensorFlow with CUDA and cuDNN if an NVIDIA GPU is available:
 
 ```bash
+# EviLOG/
 conda env create -f environment.yml
 ```
 
 <u>Alternatively</u>, it is possible to install all package dependencies in a **Python 3.7** environment (e.g. by using _virtualenv_) with _pip_:
 
 ```bash
+# EviLOG/
 pip install -r requirements.txt
 ```
 
@@ -63,7 +65,7 @@ _**Note**: Download size is approximately 3.5 GB, uncompressed size is approxima
 Put the downloaded tar archive into the [data](./data) folder and extract it:
 
 ```bash
-# deep_lidar_grid_mapping/data/
+# EviLOG/data/
 tar xvf EviLOG_2021.tar.gz
 ```
 
@@ -78,7 +80,7 @@ Input directories, training parameters, and more can be set via CLI arguments or
 Start training the model by passing the provided config file [model/config.yml](model/config.yml).
 
 ```bash
-cd model/
+# EviLOG/model/
 export TF_FORCE_GPU_ALLOW_GROWTH=true  # try this if cuDNN fails to initialize
 ./train.py -c config.yml
 ```
@@ -90,6 +92,7 @@ You can visualize training progress by pointing *TensorBoard* to the output dire
 Before evaluating your trained model on the test data, set the parameter `model-weights` to point to the `best_weights.hdf5` file in the `Checkpoints` folder of its model directory.
 
 ```bash
+# EviLOG/model/
 ./evaluate.py -c config.yml --input-validation ../data/input_test --label-validation ../data/label_test --model-weights output/<YOUR-TIMESTAMP>/Checkpoints/best_weights.hdf5
 ```
 
@@ -102,12 +105,13 @@ To actually see the predictions your network makes, try it out on unseen input p
 Prediction using **synthetic test data**:
 
 ```bash
+# EviLOG/model/
 ./predict.py -c config.yml --model-weights output/<YOUR-TIMESTAMP>/Checkpoints/best_weights.hdf5 --prediction-dir output/<YOUR-TIMESTAMP>/Predictions
 ```
 
 Prediction using **real-world input point clouds**:
 
 ```bash
+# EviLOG/model/
 ./predict.py -c config.yml --input-testing ../data/input_real --model-weights output/<YOUR-TIMESTAMP>/Checkpoints/best_weights.hdf5 --prediction-dir output/<YOUR-TIMESTAMP>/Predictions-Real
 ```
-
