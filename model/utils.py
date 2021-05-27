@@ -29,7 +29,7 @@ import tensorflow as tf
 import cv2
 import importlib
 import math
-from pypcd import pypcd
+from pyntcloud import PyntCloud
 from point_pillars import createPillars
 
 
@@ -163,16 +163,10 @@ def evidence_to_ogm(logits):
 
 
 def readPointCloud(file, intensity_threshold):
+    point_cloud = PyntCloud.from_file(file).points.values  # numpy.ndarray with one point per row with columns (x, y, z, i)
+    point_cloud[:,3] = np.clip(point_cloud[:,3] / intensity_threshold, 0.0, 1.0, dtype=np.float32)
 
-    pypcd_pcl = pypcd.PointCloud.from_path(file).pc_data
-    x = pypcd_pcl["x"]
-    y = pypcd_pcl["y"]
-    z = pypcd_pcl["z"]
-    i = np.clip(pypcd_pcl["intensity"] / intensity_threshold, 0.0, 1.0)
-    pcl = np.array([x, y, z, i], dtype=np.float32)
-    pcl = np.transpose(pcl)  # one point per row with columns (x, y, z, i)
-
-    return pcl
+    return point_cloud
 
 
 def make_point_pillars(points: np.ndarray,
