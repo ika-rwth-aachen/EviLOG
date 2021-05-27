@@ -162,9 +162,10 @@ def evidence_to_ogm(logits):
     return image
 
 
-def readPointCloud(file, intensity_threshold):
+def readPointCloud(file, intensity_threshold = None):
     point_cloud = PyntCloud.from_file(file).points.values  # numpy.ndarray with one point per row with columns (x, y, z, i)
-    point_cloud[:,3] = np.clip(point_cloud[:,3] / intensity_threshold, 0.0, 1.0, dtype=np.float32)
+    if intensity_threshold is not None:
+        point_cloud[:,3] = np.clip(point_cloud[:,3] / intensity_threshold, 0.0, 1.0, dtype=np.float32)
 
     return point_cloud
 
@@ -249,12 +250,8 @@ def naive_geometric_ISM(pcd_file_path,
                         step_size_y,
                         z_min_obstacle=-1.0,
                         z_max_obstacle=0.5):
-    pypcd_pcl = pypcd.PointCloud.from_path(pcd_file_path).pc_data
-    x = pypcd_pcl["x"]
-    y = pypcd_pcl["y"]
-    z = pypcd_pcl["z"]
-    pcl = np.array([x, y, z], dtype=np.float32)
-    pcl = np.transpose(pcl)  # one point per row with columns (x, y, z, i)
+
+    point_cloud = readPointCloud(pcd_file_path)
 
     # create image representing naive OGM using a simple geometric inverse sensor model
     cells_x = int((x_max - x_min) / step_size_x)
@@ -262,10 +259,10 @@ def naive_geometric_ISM(pcd_file_path,
     center_x = int(-x_min / step_size_x)
     center_y = int(-y_min / step_size_y)
     naive_ogm = np.zeros((cells_x, cells_y, 3), dtype=np.uint8)
-    for point in pcl:
+    for point in point_cloud:
         x, y, z = point[0:3]
 
-        if z_min_obstacle < z < z_max_obstacle and x_min < x < x_max and y_min < y < y_max:
+        if z_min_obstacle < z < z_max_obstacle:
             x = int((x - x_min) / step_size_x)
             y = int((y - y_min) / step_size_y)
             cv2.line(naive_ogm, (cells_y - y, cells_x - x),
