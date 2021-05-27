@@ -161,16 +161,16 @@ def getConf():
                type=int,
                default=None,
                help="threshold for point intensity")
-    parser.add("-gmx",
-               "--grid-map-size-x",
+    parser.add("-lrx",
+               "--label-resize-x",
                type=int,
                default=None,
-               help="grid map size in x direction")
-    parser.add("-gmy",
-               "--grid-map-size-y",
+               help="grid map label size in x direction")
+    parser.add("-lry",
+               "--label-resize-y",
                type=int,
                default=None,
-               help="grid map size in y direction")
+               help="grid map label size in y direction")
     parser.add("-mpp",
                "--max-points-per-pillar",
                type=int,
@@ -193,7 +193,7 @@ def getConf():
                help="number of channels")
     conf, unknown = parser.parse_known_args()
 
-    conf.label_resize_shape = [conf.grid_map_size_x, conf.grid_map_size_y]
+    conf.label_resize_shape = [conf.label_resize_x, conf.label_resize_y]
 
     # determine absolute filepaths
     conf.input_training = utils.abspath(conf.input_training)
