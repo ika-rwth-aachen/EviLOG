@@ -23,6 +23,7 @@ input-testing: ../data/input_test
 # prediction-dir:
 
 ## Model Parameters ##
+min-point-distance: 3.0
 intensity-threshold: 100
 max-points-per-pillar: 100
 max-pillars: 10000

@@ -156,6 +156,11 @@ def getConf():
                type=float,
                default=None,
                help="step size in y direction")
+    parser.add("-mpd",
+               "--min-point-distance",
+               type=float,
+               default=0.0,
+               help="minimum distance for point")
     parser.add("-ith",
                "--intensity-threshold",
                type=int,

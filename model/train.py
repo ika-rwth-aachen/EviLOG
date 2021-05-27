@@ -52,6 +52,7 @@ class LidarGridMapping():
         self.step_x_size = conf.step_x_size
         self.step_y_size = conf.step_y_size
         self.intensity_threshold = conf.intensity_threshold
+        self.min_point_distance = conf.min_point_distance
         self.label_resize_shape = conf.label_resize_shape
         self.max_points_per_pillar = conf.max_points_per_pillar
         self.max_pillars = conf.max_pillars
@@ -226,7 +227,7 @@ class LidarGridMapping():
             pillars, voxels = utils.make_point_pillars(
                 lidar, self.max_points_per_pillar, self.max_pillars,
                 self.step_x_size, self.step_y_size, self.x_min, self.x_max,
-                self.y_min, self.y_max, self.z_min, self.z_max)
+                self.y_min, self.y_max, self.z_min, self.z_max, self.min_point_distance)
             pillars = pillars.astype(np.float32)
             voxels = voxels.astype(np.int32)
             voxels[..., 0] = batch_element_idx
