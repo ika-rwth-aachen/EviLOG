@@ -1,4 +1,4 @@
-name: dlgm
+name: EviLOG
 channels:
   - conda-forge
   - hcc
