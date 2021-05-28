@@ -60,7 +60,7 @@ We provide all data that is required to reproduce the results in our paper. The 
 
 We are very interested in the impact of our provided dataset. Please [fill out this form](https://www.unicaragil.de/en/evilog) and we will send you a download link that is valid for 24 hours.
 
-_**Note**: Download size is approximately 3.5 GB, uncompressed size is approximately 4.3 GB._
+_**Note**: Download size is approximately 4.0 GB, uncompressed size is approximately 4.7 GB._
 
 Put the downloaded tar archive into the [data](./data) folder and extract it:
 
