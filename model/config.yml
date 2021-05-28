@@ -17,7 +17,7 @@ label-validation: ../data/label_valid
 # model-weights-epoch:
 
 ## Prediction ##
-max-samples-testing: 100
+max-samples-testing: 300
 input-testing: ../data/input_test
 # input-testing: ../data/input_real
 # prediction-dir:

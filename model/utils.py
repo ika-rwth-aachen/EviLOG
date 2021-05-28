@@ -163,10 +163,16 @@ def evidence_to_ogm(logits):
     return image
 
 
-def readPointCloud(file, intensity_threshold = None):
-    point_cloud = PyntCloud.from_file(file).points.values[:,0:4]  # numpy.ndarray with one point per row with columns (x, y, z, i)
+def readPointCloud(file, intensity_threshold=None):
+    point_cloud = PyntCloud.from_file(
+        file
+    ).points.values[:, 0:
+                    4]  # numpy.ndarray with one point per row with columns (x, y, z, i)
     if intensity_threshold is not None:
-        point_cloud[:,3] = np.clip(point_cloud[:,3] / intensity_threshold, 0.0, 1.0, dtype=np.float32)
+        point_cloud[:, 3] = np.clip(point_cloud[:, 3] / intensity_threshold,
+                                    0.0,
+                                    1.0,
+                                    dtype=np.float32)
 
     return point_cloud
 
@@ -268,17 +274,21 @@ def naive_geometric_ISM(pcd_file_path,
     for point in point_cloud:
         x, y, z = point[0:3]
 
-        if z_min_obstacle < z < z_max_obstacle and (min_distance is None or np.linalg.norm(point[0:3]) > min_distance):
+        if z_min_obstacle < z < z_max_obstacle and (
+                min_distance is None
+                or np.linalg.norm(point[0:3]) > min_distance):
             x = int((x - x_min) / step_size_x)
             y = int((y - y_min) / step_size_y)
-            
+
             if 0 <= x < cells_x and 0 <= y < cells_y:
                 naive_ogm[x, y, 2] = 255
-    
+
     for point in point_cloud:
         x, y, z = point[0:3]
 
-        if z_min_obstacle < z < z_max_obstacle and (min_distance is None or np.linalg.norm(point[0:3]) > min_distance):
+        if z_min_obstacle < z < z_max_obstacle and (
+                min_distance is None
+                or np.linalg.norm(point[0:3]) > min_distance):
             x = int((x - x_min) / step_size_x)
             y = int((y - y_min) / step_size_y)
 
@@ -288,7 +298,7 @@ def naive_geometric_ISM(pcd_file_path,
                 x = dx_cut + center_x
 
                 dy = y - center_y
-                dy_cut = math.floor(dy/dx*dx_cut)
+                dy_cut = math.floor(dy / dx * dx_cut)
                 y = int(dy_cut + center_y)
 
             elif x < 0:
@@ -297,7 +307,7 @@ def naive_geometric_ISM(pcd_file_path,
                 x = dx_cut + center_x
 
                 dy = y - center_y
-                dy_cut = math.floor(dy/dx*dx_cut)
+                dy_cut = math.floor(dy / dx * dx_cut)
                 y = int(dy_cut + center_y)
 
             if y >= cells_y:
@@ -306,7 +316,7 @@ def naive_geometric_ISM(pcd_file_path,
                 y = int(dy_cut + center_y)
 
                 dx = x - center_x
-                dx_cut = math.floor(dx/dy*dy_cut)
+                dx_cut = math.floor(dx / dy * dy_cut)
                 x = int(dx_cut + center_x)
 
             elif y < 0:
@@ -315,7 +325,7 @@ def naive_geometric_ISM(pcd_file_path,
                 y = int(dy_cut + center_y)
 
                 dx = x - center_x
-                dx_cut = math.floor(dx/dy*dy_cut)
+                dx_cut = math.floor(dx / dy * dy_cut)
                 x = int(dx_cut + center_x)
 
             rr, cc = line(center_x, center_y, x, y)
@@ -324,6 +334,6 @@ def naive_geometric_ISM(pcd_file_path,
                     break
                 naive_ogm[r, c, 1] = 255
 
-    naive_ogm = np.flip(naive_ogm, axis=(0,1))
+    naive_ogm = np.flip(naive_ogm, axis=(0, 1))
 
     return naive_ogm
