@@ -120,3 +120,16 @@ for k in tqdm.tqdm(range(n_samples)):
                                os.path.basename(files_input[k]))
     cv2.imwrite(output_file + ".png",
                 cv2.cvtColor(prediction_img, cv2.COLOR_RGB2BGR))
+
+    # create "naive" occupancy grid map for comparision
+    naive_ogm = utils.naive_geometric_ISM(input_file, conf.x_min, conf.x_max,
+                                          conf.y_min, conf.y_max,
+                                          conf.step_x_size, conf.step_y_size,
+                                          -1.11, 0.39, conf.min_point_distance)
+    naive_ogm = cv2.resize(
+        naive_ogm, (conf.label_resize_shape[1], conf.label_resize_shape[0]))
+    naive_ogm_dir = os.path.join(conf.prediction_dir, "naive_ogm")
+    if not os.path.exists(naive_ogm_dir):
+        os.makedirs(naive_ogm_dir)
+    naive_ogm_file = os.path.join(naive_ogm_dir, os.path.basename(files_input[k]) + '.png')
+    cv2.imwrite(naive_ogm_file, naive_ogm)
