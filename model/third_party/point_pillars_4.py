@@ -13,7 +13,7 @@
 #   - do not use lambda function for tf.scatter_nd
 #   - removed detection head
 #   - reverse dimensions to match grid map coordinates
-#   - added dropout of 0.1 in loops of Block1, Block2 and Block3
+#   - added dropout of 0.2 in loops of Block1, Block2 and Block3
 # ==============================================================================
 
 import tensorflow as tf
@@ -74,7 +74,7 @@ def getPointPillarsModel(image_size, max_pillars, max_points, nb_features,
                                    name="cnn/block1/conv2d%i" % n)(x)
         x = tf.keras.layers.BatchNormalization(name="cnn/block1/bn%i" % n,
                                                fused=True)(x)
-        x = tf.keras.layers.Dropout(0.1, name="cnn/block1/dropout%i" % n)(x)
+        x = tf.keras.layers.Dropout(0.2, name="cnn/block1/dropout%i" % n)(x)
     x1 = x
 
     # Block2(2S, 6, 2C)
@@ -87,7 +87,7 @@ def getPointPillarsModel(image_size, max_pillars, max_points, nb_features,
                                    name="cnn/block2/conv2d%i" % n)(x)
         x = tf.keras.layers.BatchNormalization(name="cnn/block2/bn%i" % n,
                                                fused=True)(x)
-        x = tf.keras.layers.Dropout(0.1, name="cnn/block2/dropout%i" % n)(x)
+        x = tf.keras.layers.Dropout(0.2, name="cnn/block2/dropout%i" % n)(x)
     x2 = x
 
     # Block3(4S, 6, 4C)
@@ -100,7 +100,7 @@ def getPointPillarsModel(image_size, max_pillars, max_points, nb_features,
                                    name="cnn/block3/conv2d%i" % n)(x)
         x = tf.keras.layers.BatchNormalization(name="cnn/block3/bn%i" % n,
                                                fused=True)(x)
-        x = tf.keras.layers.Dropout(0.1, name="cnn/block3/dropout%i" % n)(x)
+        x = tf.keras.layers.Dropout(0.2, name="cnn/block3/dropout%i" % n)(x)
     x3 = x
 
     # Up1 (S, S, 2C)

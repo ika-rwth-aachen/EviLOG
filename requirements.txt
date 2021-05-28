@@ -3,8 +3,9 @@ matplotlib==3.3.4
 numpy==1.19.5
 opencv-python==4.4.0.44
 pip==21.0.1
+pyntcloud==0.1.4
+scikit-image==0.18.1
 tensorflow==2.2.0
 tensorflow-addons==0.11.2
 tqdm==4.59.0
-git+https://github.com/klintan/pypcd.git#egg=pypcd
-git+https://slikaf:C9doVn4AF3hVxHjJFiGy@gitlab.ika.rwth-aachen.de/automated-driving/pointpillars.git
+git+https://github.com/ika-rwth-aachen/PointPillars.git

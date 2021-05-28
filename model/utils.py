@@ -29,8 +29,9 @@ import tensorflow as tf
 import cv2
 import importlib
 import math
-from pypcd import pypcd
+from pyntcloud import PyntCloud
 from point_pillars import createPillars
+from skimage.draw import line
 
 
 def abspath(path):
@@ -162,17 +163,18 @@ def evidence_to_ogm(logits):
     return image
 
 
-def readPointCloud(file, intensity_threshold):
+def readPointCloud(file, intensity_threshold=None):
+    point_cloud = PyntCloud.from_file(
+        file
+    ).points.values[:, 0:
+                    4]  # numpy.ndarray with one point per row with columns (x, y, z, i)
+    if intensity_threshold is not None:
+        point_cloud[:, 3] = np.clip(point_cloud[:, 3] / intensity_threshold,
+                                    0.0,
+                                    1.0,
+                                    dtype=np.float32)
 
-    pypcd_pcl = pypcd.PointCloud.from_path(file).pc_data
-    x = pypcd_pcl["x"]
-    y = pypcd_pcl["y"]
-    z = pypcd_pcl["z"]
-    i = np.clip(pypcd_pcl["intensity"] / intensity_threshold, 0.0, 1.0)
-    pcl = np.array([x, y, z, i], dtype=np.float32)
-    pcl = np.transpose(pcl)  # one point per row with columns (x, y, z, i)
-
-    return pcl
+    return point_cloud
 
 
 def make_point_pillars(points: np.ndarray,
@@ -186,16 +188,20 @@ def make_point_pillars(points: np.ndarray,
                        y_max,
                        z_min,
                        z_max,
+                       min_distance=None,
                        print_time=False):
 
     assert points.ndim == 2
     assert points.shape[1] == 4  # (x, y, z, i) in columns
     assert points.dtype == np.float32
 
+    if min_distance is None:
+        min_distance = -1
+
     pillars, indices = createPillars(points, max_points_per_pillar,
                                      max_pillars, step_x_size, step_y_size,
                                      x_min, x_max, y_min, y_max, z_min, z_max,
-                                     print_time)
+                                     print_time, min_distance)
 
     return pillars, indices
 
@@ -254,13 +260,10 @@ def naive_geometric_ISM(pcd_file_path,
                         step_size_x,
                         step_size_y,
                         z_min_obstacle=-1.0,
-                        z_max_obstacle=0.5):
-    pypcd_pcl = pypcd.PointCloud.from_path(pcd_file_path).pc_data
-    x = pypcd_pcl["x"]
-    y = pypcd_pcl["y"]
-    z = pypcd_pcl["z"]
-    pcl = np.array([x, y, z], dtype=np.float32)
-    pcl = np.transpose(pcl)  # one point per row with columns (x, y, z, i)
+                        z_max_obstacle=0.5,
+                        min_distance=None):
+
+    point_cloud = readPointCloud(pcd_file_path)
 
     # create image representing naive OGM using a simple geometric inverse sensor model
     cells_x = int((x_max - x_min) / step_size_x)
@@ -268,17 +271,69 @@ def naive_geometric_ISM(pcd_file_path,
     center_x = int(-x_min / step_size_x)
     center_y = int(-y_min / step_size_y)
     naive_ogm = np.zeros((cells_x, cells_y, 3), dtype=np.uint8)
-    for point in pcl:
+    for point in point_cloud:
         x, y, z = point[0:3]
 
-        if z_min_obstacle < z < z_max_obstacle and x_min < x < x_max and y_min < y < y_max:
+        if z_min_obstacle < z < z_max_obstacle and (
+                min_distance is None
+                or np.linalg.norm(point[0:3]) > min_distance):
             x = int((x - x_min) / step_size_x)
             y = int((y - y_min) / step_size_y)
-            cv2.line(naive_ogm, (cells_y - y, cells_x - x),
-                     (cells_y - center_y, cells_x - center_x), (0, 255, 0),
-                     thickness=1)
-            cv2.circle(naive_ogm, ((cells_y - y, cells_x - x)),
-                       radius=0,
-                       color=(0, 0, 255))
+
+            if 0 <= x < cells_x and 0 <= y < cells_y:
+                naive_ogm[x, y, 2] = 255
+
+    for point in point_cloud:
+        x, y, z = point[0:3]
+
+        if z_min_obstacle < z < z_max_obstacle and (
+                min_distance is None
+                or np.linalg.norm(point[0:3]) > min_distance):
+            x = int((x - x_min) / step_size_x)
+            y = int((y - y_min) / step_size_y)
+
+            if x >= cells_x:
+                dx = x - center_x
+                dx_cut = center_x - 1
+                x = dx_cut + center_x
+
+                dy = y - center_y
+                dy_cut = math.floor(dy / dx * dx_cut)
+                y = int(dy_cut + center_y)
+
+            elif x < 0:
+                dx = x - center_x
+                dx_cut = -center_x
+                x = dx_cut + center_x
+
+                dy = y - center_y
+                dy_cut = math.floor(dy / dx * dx_cut)
+                y = int(dy_cut + center_y)
+
+            if y >= cells_y:
+                dy = y - center_y
+                dy_cut = center_y - 1
+                y = int(dy_cut + center_y)
+
+                dx = x - center_x
+                dx_cut = math.floor(dx / dy * dy_cut)
+                x = int(dx_cut + center_x)
+
+            elif y < 0:
+                dy = y - center_y
+                dy_cut = -center_y
+                y = int(dy_cut + center_y)
+
+                dx = x - center_x
+                dx_cut = math.floor(dx / dy * dy_cut)
+                x = int(dx_cut + center_x)
+
+            rr, cc = line(center_x, center_y, x, y)
+            for (r, c) in zip(rr, cc):
+                if naive_ogm[r, c, 2] > 0:
+                    break
+                naive_ogm[r, c, 1] = 255
+
+    naive_ogm = np.flip(naive_ogm, axis=(0, 1))
 
     return naive_ogm

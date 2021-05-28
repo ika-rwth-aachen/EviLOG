@@ -3,25 +3,32 @@ max-samples-training: 10000
 input-training: ../data/input_train
 label-training: ../data/label_train
 model: model.py
-epochs: 17
-batch-size: 1
+epochs: 100
+batch-size: 5
 learning-rate: 1e-4
 save-interval: 1
 output-dir: output
 
 ## Evaluation ##
-# model-weights:
 max-samples-validation: 1000
 input-validation: ../data/input_valid
 label-validation: ../data/label_valid
+# model-weights:
+# model-weights-epoch:
 
 ## Prediction ##
-max-samples-testing: 100
+max-samples-testing: 300
 input-testing: ../data/input_test
 # input-testing: ../data/input_real
 # prediction-dir:
 
 ## Model Parameters ##
+min-point-distance: 3.0
+intensity-threshold: 100
+max-points-per-pillar: 100
+max-pillars: 10000
+number-features: 9
+number-channels: 64
 y-min: -28.16
 y-max: 28.16
 x-min: -40.96
@@ -30,10 +37,5 @@ z-min: -3.0
 z-max: 1.0
 step-x-size: 0.16
 step-y-size: 0.16
-intensity-threshold: 100
-grid-map-size-x: 256
-grid-map-size-y: 176
-max-points-per-pillar: 100
-max-pillars: 10000
-number-features: 9
-number-channels: 64
+label-resize-x: 256
+label-resize-y: 176

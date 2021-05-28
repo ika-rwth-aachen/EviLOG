@@ -94,7 +94,7 @@ def parseSampleFn(input_file, sample_idx, label_file=None):
     pillars, voxels = utils.make_point_pillars(
         lidar, conf.max_points_per_pillar, conf.max_pillars, conf.step_x_size,
         conf.step_y_size, conf.x_min, conf.x_max, conf.y_min, conf.y_max,
-        conf.z_min, conf.z_max)
+        conf.z_min, conf.z_max, conf.min_point_distance)
     pillars = pillars.astype(np.float32)
     voxels = voxels.astype(np.int32)
     voxels[..., 0] = batch_element_idx
@@ -140,7 +140,7 @@ for k in tqdm.tqdm(range(n_samples)):
         float(tf.reduce_mean(prob[..., 1])))
     evaluation_dict['deep']['KL_distance'].append(float(kld(label,
                                                             prediction)))
-    
+
     # save predicted grid map
     prediction_dir = os.path.join(eval_dir, "predictions")
     if not os.path.exists(prediction_dir):
@@ -155,7 +155,7 @@ for k in tqdm.tqdm(range(n_samples)):
     naive_ogm = utils.naive_geometric_ISM(input_file, conf.x_min, conf.x_max,
                                           conf.y_min, conf.y_max,
                                           conf.step_x_size, conf.step_y_size,
-                                          -1.11, 0.39)
+                                          -1.11, 0.39, conf.min_point_distance)
     naive_ogm = cv2.resize(
         naive_ogm, (conf.label_resize_shape[1], conf.label_resize_shape[0]))
     naive_ogm_dir = os.path.join(eval_dir, "naive_ogm")

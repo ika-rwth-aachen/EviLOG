@@ -28,13 +28,13 @@ import tensorflow as tf
 
 import utils
 
+
 class EvidentialAccuracy(tf.keras.metrics.Accuracy):
     """``tf.keras.metrics.Accuracy`` adapted for outputs containing unnormalized evidences for `K` classes.
-    The evidences will be converted two belief masses and an additional uncertainty mass will be introduced.
+    The evidences will be converted into two belief masses and an additional uncertainty mass will be introduced.
     The three belief masses will be converted to a one-hot encoded vector by selecting the maximum mass.
     This one-hot vector is used to calculate the mean accuracy.
     """
-
     def __init__(self, name='evidential_accuracy', *args, **kwargs):
         super().__init__(name, *args, *kwargs)
 
