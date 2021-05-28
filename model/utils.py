@@ -31,6 +31,7 @@ import importlib
 import math
 from pyntcloud import PyntCloud
 from point_pillars import createPillars
+from skimage.draw import line
 
 
 def abspath(path):
@@ -270,11 +271,59 @@ def naive_geometric_ISM(pcd_file_path,
         if z_min_obstacle < z < z_max_obstacle and (min_distance is None or np.linalg.norm(point[0:3]) > min_distance):
             x = int((x - x_min) / step_size_x)
             y = int((y - y_min) / step_size_y)
-            cv2.line(naive_ogm, (cells_y - y, cells_x - x),
-                     (cells_y - center_y, cells_x - center_x), (0, 255, 0),
-                     thickness=1)
-            cv2.circle(naive_ogm, ((cells_y - y, cells_x - x)),
-                       radius=0,
-                       color=(0, 0, 255))
+            
+            if 0 <= x < cells_x and 0 <= y < cells_y:
+                naive_ogm[x, y, 2] = 255
+    
+    for point in point_cloud:
+        x, y, z = point[0:3]
+
+        if z_min_obstacle < z < z_max_obstacle and (min_distance is None or np.linalg.norm(point[0:3]) > min_distance):
+            x = int((x - x_min) / step_size_x)
+            y = int((y - y_min) / step_size_y)
+
+            if x >= cells_x:
+                dx = x - center_x
+                dx_cut = center_x - 1
+                x = dx_cut + center_x
+
+                dy = y - center_y
+                dy_cut = math.floor(dy/dx*dx_cut)
+                y = int(dy_cut + center_y)
+
+            elif x < 0:
+                dx = x - center_x
+                dx_cut = -center_x
+                x = dx_cut + center_x
+
+                dy = y - center_y
+                dy_cut = math.floor(dy/dx*dx_cut)
+                y = int(dy_cut + center_y)
+
+            if y >= cells_y:
+                dy = y - center_y
+                dy_cut = center_y - 1
+                y = int(dy_cut + center_y)
+
+                dx = x - center_x
+                dx_cut = math.floor(dx/dy*dy_cut)
+                x = int(dx_cut + center_x)
+
+            elif y < 0:
+                dy = y - center_y
+                dy_cut = -center_y
+                y = int(dy_cut + center_y)
+
+                dx = x - center_x
+                dx_cut = math.floor(dx/dy*dy_cut)
+                x = int(dx_cut + center_x)
+
+            rr, cc = line(center_x, center_y, x, y)
+            for (r, c) in zip(rr, cc):
+                if naive_ogm[r, c, 2] > 0:
+                    break
+                naive_ogm[r, c, 1] = 255
+
+    naive_ogm = np.flip(naive_ogm, axis=(0,1))
 
     return naive_ogm
