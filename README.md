@@ -1,6 +1,6 @@
 # EviLOG: Evidential Lidar Occupancy Grid Mapping
 
-<img src="assets/teaser.gif" align="right" width=176 height=256>
+<img src="assets/test-prediction.gif" align="right" width=176 height=256>
 
 This repository provides the dataset as well as the training pipeline that was used in our paper:
 
@@ -97,6 +97,12 @@ Before evaluating your trained model on the test data, set the parameter `model-
 ```
 
 The evaluation results will be exported to the `Evaluation` folder in your model directory. This also comprises a comparison between occupancy grid maps predicted by the neural network and grid maps created using a simple geometric inverse sensor model.
+
+| Deep Inverse Sensor Model                   | Geometric Inverse Sensor Model            |
+| ------------------------------------------- | ----------------------------------------- |
+| ![prediction](./assets/test-prediction.gif) | ![geometric](./assets/test-geometric.gif) |
+
+
 
 ### Testing
 
