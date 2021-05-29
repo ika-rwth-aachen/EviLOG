@@ -141,6 +141,32 @@ for k in tqdm.tqdm(range(n_samples)):
     evaluation_dict['deep']['KL_distance'].append(float(kld(label,
                                                             prediction)))
 
+    # save input point cloud as image
+    input_dir = os.path.join(eval_dir, "inputs")
+    if not os.path.exists(input_dir):
+        os.makedirs(input_dir)
+    lidar = utils.readPointCloud(input_file, conf.intensity_threshold)
+    lidar_bev = utils.lidar_to_bird_view_img(lidar,
+                                             conf.x_min,
+                                             conf.x_max,
+                                             conf.y_min,
+                                             conf.y_max,
+                                             conf.step_x_size,
+                                             conf.step_y_size,
+                                             factor=2)
+    output_file = os.path.join(input_dir, os.path.basename(files_input[k]))
+    cv2.imwrite(output_file + ".png", cv2.cvtColor(lidar_bev,
+                                                   cv2.COLOR_RGB2BGR))
+
+    # save label as image
+    label_img = utils.evidence_to_ogm(label)
+    label_dir = os.path.join(eval_dir, "labels")
+    if not os.path.exists(label_dir):
+        os.makedirs(label_dir)
+    output_file = os.path.join(label_dir, os.path.basename(files_input[k]))
+    cv2.imwrite(output_file + ".png", cv2.cvtColor(label_img,
+                                                   cv2.COLOR_RGB2BGR))
+
     # save predicted grid map
     prediction_dir = os.path.join(eval_dir, "predictions")
     if not os.path.exists(prediction_dir):

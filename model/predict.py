@@ -131,5 +131,6 @@ for k in tqdm.tqdm(range(n_samples)):
     naive_ogm_dir = os.path.join(conf.prediction_dir, "naive_ogm")
     if not os.path.exists(naive_ogm_dir):
         os.makedirs(naive_ogm_dir)
-    naive_ogm_file = os.path.join(naive_ogm_dir, os.path.basename(files_input[k]) + '.png')
+    naive_ogm_file = os.path.join(naive_ogm_dir,
+                                  os.path.basename(files_input[k]) + '.png')
     cv2.imwrite(naive_ogm_file, naive_ogm)
