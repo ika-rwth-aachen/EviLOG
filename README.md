@@ -56,11 +56,11 @@ We provide all data that is required to reproduce the results in our paper. The 
   - 10.000 training samples
   - 1.000 validation samples
   - 100 test samples
-- **Real-world input data** that was recorded with a *Velodyne VLP32C* lidar sensor (300 point clouds)
+- **Real-world input data** that was recorded with a *Velodyne VLP32C* lidar sensor during a ~9 minutes ride in an urban area (5.224 point clouds).
 
 We are very interested in the impact of our provided dataset. Please [fill out this form](https://www.unicaragil.de/en/evilog) and we will send you a download link that is valid for 24 hours.
 
-_**Note**: Download size is approximately 4.0 GB, uncompressed size is approximately 4.7 GB._
+_**Note**: Download size is approximately 7.9 GB, uncompressed size is approximately 17 GB._
 
 Put the downloaded tar archive into the [data](./data) folder and extract it:
 

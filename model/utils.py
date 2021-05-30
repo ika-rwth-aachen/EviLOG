@@ -164,10 +164,8 @@ def evidence_to_ogm(logits):
 
 
 def readPointCloud(file, intensity_threshold=None):
-    point_cloud = PyntCloud.from_file(
-        file
-    ).points.values[:, 0:
-                    4]  # numpy.ndarray with one point per row with columns (x, y, z, i)
+    # numpy.ndarray with one point per row with columns (x, y, z, i)
+    point_cloud = PyntCloud.from_file(file).points.values[:, 0:4]
     if intensity_threshold is not None:
         point_cloud[:, 3] = np.clip(point_cloud[:, 3] / intensity_threshold,
                                     0.0,
