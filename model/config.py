@@ -116,6 +116,21 @@ def getConf():
                type=int,
                default=0,
                help="epoch of weights file")
+    parser.add("-sip",
+               "--store-input-point-clouds",
+               type=bool,
+               default=True,
+               help="store input point clouds as images during evaluation or prediction")
+    parser.add("-sl",
+               "--store-labels",
+               type=bool,
+               default=True,
+               help="store ground truth grid maps as images during evaluation")
+    parser.add("-sno",
+               "--store-naive-ogms",
+               type=bool,
+               default=True,
+               help="store grid maps created by a simple inverse sensor model as images during evaluation or prediction")
     parser.add("-xmi",
                "--x-min",
                type=float,

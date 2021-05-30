@@ -141,32 +141,6 @@ for k in tqdm.tqdm(range(n_samples)):
     evaluation_dict['deep']['KL_distance'].append(float(kld(label,
                                                             prediction)))
 
-    # save input point cloud as image
-    input_dir = os.path.join(eval_dir, "inputs")
-    if not os.path.exists(input_dir):
-        os.makedirs(input_dir)
-    lidar = utils.readPointCloud(input_file, conf.intensity_threshold)
-    lidar_bev = utils.lidar_to_bird_view_img(lidar,
-                                             conf.x_min,
-                                             conf.x_max,
-                                             conf.y_min,
-                                             conf.y_max,
-                                             conf.step_x_size,
-                                             conf.step_y_size,
-                                             factor=2)
-    output_file = os.path.join(input_dir, os.path.basename(files_input[k]))
-    cv2.imwrite(output_file + ".png", cv2.cvtColor(lidar_bev,
-                                                   cv2.COLOR_RGB2BGR))
-
-    # save label as image
-    label_img = utils.evidence_to_ogm(label)
-    label_dir = os.path.join(eval_dir, "labels")
-    if not os.path.exists(label_dir):
-        os.makedirs(label_dir)
-    output_file = os.path.join(label_dir, os.path.basename(files_input[k]))
-    cv2.imwrite(output_file + ".png", cv2.cvtColor(label_img,
-                                                   cv2.COLOR_RGB2BGR))
-
     # save predicted grid map
     prediction_dir = os.path.join(eval_dir, "predictions")
     if not os.path.exists(prediction_dir):
@@ -177,6 +151,34 @@ for k in tqdm.tqdm(range(n_samples)):
     cv2.imwrite(output_file + ".png",
                 cv2.cvtColor(prediction_img, cv2.COLOR_RGB2BGR))
 
+    # save input point cloud as image
+    if conf.store_input_point_clouds:
+        input_dir = os.path.join(eval_dir, "inputs")
+        if not os.path.exists(input_dir):
+            os.makedirs(input_dir)
+        lidar = utils.readPointCloud(input_file, conf.intensity_threshold)
+        lidar_bev = utils.lidar_to_bird_view_img(lidar,
+                                                conf.x_min,
+                                                conf.x_max,
+                                                conf.y_min,
+                                                conf.y_max,
+                                                conf.step_x_size,
+                                                conf.step_y_size,
+                                                factor=2)
+        output_file = os.path.join(input_dir, os.path.basename(files_input[k]))
+        cv2.imwrite(output_file + ".png", cv2.cvtColor(lidar_bev,
+                                                    cv2.COLOR_RGB2BGR))
+
+    # save label as image
+    if conf.store_labels:
+        label_img = utils.evidence_to_ogm(label)
+        label_dir = os.path.join(eval_dir, "labels")
+        if not os.path.exists(label_dir):
+            os.makedirs(label_dir)
+        output_file = os.path.join(label_dir, os.path.basename(files_input[k]))
+        cv2.imwrite(output_file + ".png", cv2.cvtColor(label_img,
+                                                    cv2.COLOR_RGB2BGR))
+
     # create "naive" occupancy grid map for comparision
     naive_ogm = utils.naive_geometric_ISM(input_file, conf.x_min, conf.x_max,
                                           conf.y_min, conf.y_max,
@@ -184,11 +186,13 @@ for k in tqdm.tqdm(range(n_samples)):
                                           -1.11, 0.39, conf.min_point_distance)
     naive_ogm = cv2.resize(
         naive_ogm, (conf.label_resize_shape[1], conf.label_resize_shape[0]))
-    naive_ogm_dir = os.path.join(eval_dir, "naive_ogm")
-    if not os.path.exists(naive_ogm_dir):
-        os.makedirs(naive_ogm_dir)
-    naive_ogm_file = os.path.join(naive_ogm_dir, sample_name + '.png')
-    cv2.imwrite(naive_ogm_file, naive_ogm)
+
+    if conf.store_naive_ogms:
+        naive_ogm_dir = os.path.join(eval_dir, "naive_ogm")
+        if not os.path.exists(naive_ogm_dir):
+            os.makedirs(naive_ogm_dir)
+        naive_ogm_file = os.path.join(naive_ogm_dir, sample_name + '.png')
+        cv2.imwrite(naive_ogm_file, naive_ogm)
 
     # collect belief masses and Kullback-Leibler distance for OGMs by geometric ISM
     naive_ogm = naive_ogm.astype(
