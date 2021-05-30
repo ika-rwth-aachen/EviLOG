@@ -128,16 +128,16 @@ for k in tqdm.tqdm(range(n_samples)):
             os.makedirs(input_dir)
         lidar = utils.readPointCloud(input_file, conf.intensity_threshold)
         lidar_bev = utils.lidar_to_bird_view_img(lidar,
-                                                conf.x_min,
-                                                conf.x_max,
-                                                conf.y_min,
-                                                conf.y_max,
-                                                conf.step_x_size,
-                                                conf.step_y_size,
-                                                factor=2)
+                                                 conf.x_min,
+                                                 conf.x_max,
+                                                 conf.y_min,
+                                                 conf.y_max,
+                                                 conf.step_x_size,
+                                                 conf.step_y_size,
+                                                 factor=2)
         output_file = os.path.join(input_dir, os.path.basename(files_input[k]))
-        cv2.imwrite(output_file + ".png", cv2.cvtColor(lidar_bev,
-                                                    cv2.COLOR_RGB2BGR))
+        cv2.imwrite(output_file + ".png",
+                    cv2.cvtColor(lidar_bev, cv2.COLOR_RGB2BGR))
 
     # create "naive" occupancy grid map for comparision
     if conf.store_naive_ogms:
