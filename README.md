@@ -121,3 +121,10 @@ Prediction using **real-world input point clouds**:
 # EviLOG/model/
 ./predict.py -c config.yml --input-testing ../data/input_real --model-weights output/<YOUR-TIMESTAMP>/Checkpoints/best_weights.hdf5 --prediction-dir output/<YOUR-TIMESTAMP>/Predictions-Real
 ```
+
+## Acknowledgement
+
+```
+This research is accomplished within the project ”UNICARagil” (FKZ 16EMO0289). We acknowledge the financial support for the project by the Federal Ministry of Education and Research of Germany (BMBF).
+```
+
