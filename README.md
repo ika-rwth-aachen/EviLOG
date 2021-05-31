@@ -98,10 +98,9 @@ Before evaluating your trained model on the test data, set the parameter `model-
 
 The evaluation results will be exported to the `Evaluation` folder in your model directory. This also comprises a comparison between occupancy grid maps predicted by the neural network and grid maps created using a simple geometric inverse sensor model.
 
-| Deep Inverse Sensor Model                   | Geometric Inverse Sensor Model            |
-| ------------------------------------------- | ----------------------------------------- |
-| ![prediction](./assets/test-prediction.gif) | ![geometric](./assets/test-geometric.gif) |
+**Left**: Input lidar point cloud. **Middle**: baseline OGM created by geometric ISM. **Right**: OGM predicted by deep ISM
 
+![evaluation on test data](./assets/EviLOG_Test.gif)
 
 
 ### Testing
