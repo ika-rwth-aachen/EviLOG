@@ -124,7 +124,4 @@ Prediction using **real-world input point clouds**:
 
 ## Acknowledgement
 
-```
-This research is accomplished within the project ”UNICARagil” (FKZ 16EMO0289). We acknowledge the financial support for the project by the Federal Ministry of Education and Research of Germany (BMBF).
-```
-
+>This research is accomplished within the project ”UNICARagil” (FKZ 16EMO0289). We acknowledge the financial support for the project by the Federal Ministry of Education and Research of Germany (BMBF).
