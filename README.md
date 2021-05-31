@@ -1,7 +1,5 @@
 # EviLOG: Evidential Lidar Occupancy Grid Mapping
 
-<img src="assets/test-prediction.gif" align="right" width=176 height=256>
-
 This repository provides the dataset as well as the training pipeline that was used in our paper:
 
 > **A Simulation-based End-to-End Learning Framework for Evidential Occupancy Grid Mapping**
@@ -11,6 +9,8 @@ This repository provides the dataset as well as the training pipeline that was u
 > [Institute for Automotive Engineering (ika), RWTH Aachen University](https://www.ika.rwth-aachen.de/en/)
 >
 > _**Abstract**_ —  Evidential  occupancy  grid  maps  (OGMs)  are  a popular  representation  of  the  environment  of  automated  vehicles.   Inverse   sensor   models   (ISMs)   are   used   to   compute OGMs from sensor data such as lidar point clouds. Geometric ISMs  show  a  limited  performance  when  estimating  states  in unobserved  but  inferable  areas  and  have  difficulties  dealing with   ambiguous   input.   Deep   learning-based   ISMs   face   the challenge of limited training data and they often cannot handle uncertainty  quantification  yet.  We  propose  a  deep  learning-based framework for learning an OGM algorithm which is both capable of quantifying uncertainty and which does not rely on manually labeled data. Results on synthetic and on real-world data  show  superiority  over  other  approaches.
+
+[![Demo Video](./assets/EviLOG_Real.gif)](https://www.youtube.com/watch?v=lumNOMzdVKc)
 
 We hope our paper, data and code can help in your research. If this is the case, please cite:
 
@@ -121,3 +121,7 @@ Prediction using **real-world input point clouds**:
 # EviLOG/model/
 ./predict.py -c config.yml --input-testing ../data/input_real --model-weights output/<YOUR-TIMESTAMP>/Checkpoints/best_weights.hdf5 --prediction-dir output/<YOUR-TIMESTAMP>/Predictions-Real
 ```
+
+## Acknowledgement
+
+>This research is accomplished within the project ”UNICARagil” (FKZ 16EMO0289). We acknowledge the financial support for the project by the Federal Ministry of Education and Research of Germany (BMBF).
