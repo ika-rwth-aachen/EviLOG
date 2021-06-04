@@ -186,15 +186,12 @@ def make_point_pillars(points: np.ndarray,
                        y_max,
                        z_min,
                        z_max,
-                       min_distance=None,
-                       print_time=False):
+                       print_time=False,
+                       min_distance=None):
 
     assert points.ndim == 2
     assert points.shape[1] == 4  # (x, y, z, i) in columns
     assert points.dtype == np.float32
-
-    if min_distance is None:
-        min_distance = -1
 
     pillars, indices = createPillars(points, max_points_per_pillar,
                                      max_pillars, step_x_size, step_y_size,

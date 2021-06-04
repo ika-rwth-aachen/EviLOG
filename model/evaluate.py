@@ -94,7 +94,7 @@ def parseSampleFn(input_file, sample_idx, label_file=None):
     pillars, voxels = utils.make_point_pillars(
         lidar, conf.max_points_per_pillar, conf.max_pillars, conf.step_x_size,
         conf.step_y_size, conf.x_min, conf.x_max, conf.y_min, conf.y_max,
-        conf.z_min, conf.z_max, conf.min_point_distance)
+        conf.z_min, conf.z_max, min_distance = conf.min_point_distance)
     pillars = pillars.astype(np.float32)
     voxels = voxels.astype(np.int32)
     voxels[..., 0] = batch_element_idx
