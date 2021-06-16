@@ -33,14 +33,14 @@ We hope our paper, data and code can help in your research. If this is the case,
 
 ## Installation
 
-We suggest to create a new **[conda](https://docs.conda.io/) environment** with all required packages. This will automatically install the GPU version of TensorFlow with CUDA and cuDNN if an NVIDIA GPU is available:
+We suggest to create a new **[conda](https://docs.conda.io/) environment** with all required packages. This will automatically install the GPU version of TensorFlow with CUDA and cuDNN if an NVIDIA GPU is available.
 
 ```bash
 # EviLOG/
 conda env create -f environment.yml
 ```
 
-<u>Alternatively</u>, it is possible to install all package dependencies in a **Python 3.7** environment (e.g. by using _virtualenv_) with _pip_:
+<u>Alternatively</u>, it is possible to install all package dependencies in a **Python 3.7** environment (e.g. by using _virtualenv_) with _pip_. Note that *CMake* must be installed to build the `point-pillars` package.
 
 ```bash
 # EviLOG/

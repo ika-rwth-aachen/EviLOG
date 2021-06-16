@@ -3,6 +3,7 @@ channels:
   - conda-forge
   - hcc
 dependencies:
+  - cmake=3.19.6
   - configargparse=1.4
   - matplotlib=3.3.4
   - numpy=1.19.5
