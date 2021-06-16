@@ -33,14 +33,14 @@ We hope our paper, data and code can help in your research. If this is the case,
 
 ## Installation
 
-We suggest to create a new **[conda](https://docs.conda.io/) environment** with all required packages. This will automatically install the GPU version of TensorFlow with CUDA and cuDNN if an NVIDIA GPU is available:
+We suggest to create a new **[conda](https://docs.conda.io/) environment** with all required packages. This will automatically install the GPU version of TensorFlow with CUDA and cuDNN if an NVIDIA GPU is available.
 
 ```bash
 # EviLOG/
 conda env create -f environment.yml
 ```
 
-<u>Alternatively</u>, it is possible to install all package dependencies in a **Python 3.7** environment (e.g. by using _virtualenv_) with _pip_:
+<u>Alternatively</u>, it is possible to install all package dependencies in a **Python 3.7** environment (e.g. by using _virtualenv_) with _pip_. Note that *CMake* must be installed to build the `point-pillars` package.
 
 ```bash
 # EviLOG/
@@ -58,7 +58,7 @@ We provide all data that is required to reproduce the results in our paper. The 
   - 100 test samples
 - **Real-world input data** that was recorded with a *Velodyne VLP32C* lidar sensor during a ~9 minutes ride in an urban area (5.224 point clouds).
 
-We are very interested in the impact of our provided dataset. Please [fill out this form](https://www.unicaragil.de/en/evilog) and we will send you a download link that is valid for 24 hours.
+We are very interested in the impact of our provided dataset. Please fill out the **[dataset request form](https://www.unicaragil.de/en/evilog)** and we will send you a download link that is valid for 24 hours.
 
 _**Note**: Download size is approximately 6.8 GB, uncompressed size is approximately 11.8 GB._
 
