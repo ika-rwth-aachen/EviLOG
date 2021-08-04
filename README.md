@@ -2,6 +2,8 @@
 
 This repository provides the dataset as well as the training pipeline that was used in our paper:
 
+[![IV 2021 Presentation](assets/video_preview.png)](https://www.youtube.com/watch?v=BGbMvHOksBI)
+
 > **A Simulation-based End-to-End Learning Framework for Evidential Occupancy Grid Mapping**
 > ([arXiv](https://arxiv.org/abs/2102.12718))  
 >
