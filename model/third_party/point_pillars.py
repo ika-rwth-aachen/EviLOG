@@ -28,10 +28,8 @@ def getPointPillarsModel(image_size, max_pillars, max_points, nb_features,
         input_shape = (max_pillars, max_points, nb_features)
 
     input_pillars = tf.keras.layers.Input(input_shape,
-                                          batch_size=batch_size,
                                           name="pillars/input")
     input_indices = tf.keras.layers.Input((max_pillars, 3),
-                                          batch_size=batch_size,
                                           name="pillars/indices",
                                           dtype=tf.int32)
 
@@ -56,7 +54,7 @@ def getPointPillarsModel(image_size, max_pillars, max_points, nb_features,
     x = tf.keras.layers.Reshape(reshape_shape, name="pillars/reshape")(x)
 
     pillars = tf.scatter_nd(input_indices, x,
-                            (batch_size, ) + image_size + (nb_channels, ))
+                            (tf.shape(input_indices)[0], ) + image_size + (nb_channels, ))
 
     # reverse dimensions (x,y) to match OGM coordinates (size_x-x, size_y-y)
     pillars = tf.reverse(pillars, [1, 2])
