@@ -38,7 +38,7 @@ def getModel(y_min, y_max, x_min, x_max, step_x_size, step_y_size,
     # Point Pillars Feature Net
     input_pillars, input_indices, concat = getPointPillarsModel(
         tuple([Xn, Yn]), int(max_pillars), int(max_points_per_pillar),
-        int(number_features), int(number_channels), batch_size)
+        int(number_features), int(number_channels))
 
     # Evidential Prediction Head
     prediction = tf.keras.layers.Conv2D(2, (3, 3),
