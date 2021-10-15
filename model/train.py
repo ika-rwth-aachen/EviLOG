@@ -146,6 +146,7 @@ class LidarGridMapping():
         metrics = [tf.keras.metrics.KLDivergence(), EvidentialAccuracy()]
         model.compile(optimizer=optimizer, loss=loss, metrics=metrics)
         print(f"Compiled model {os.path.basename(conf.model)}")
+        model.summary()
 
         # create output directories
         model_output_dir = os.path.join(
