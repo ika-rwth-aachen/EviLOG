@@ -5,7 +5,7 @@ opencv-python==4.4.0.44
 pip==21.2.2
 pyntcloud==0.1.4
 scikit-image==0.17.2
-tensorflow==2.6.0
+tensorflow==2.6.1
 tensorflow-addons==0.14.0
 tqdm==4.59.0
 git+https://github.com/ika-rwth-aachen/PointPillars.git
