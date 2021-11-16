@@ -5,7 +5,7 @@ This repository provides the dataset as well as the training pipeline that was u
 [![IV 2021 Presentation](assets/video_preview.png)](https://www.youtube.com/watch?v=BGbMvHOksBI)
 
 > **A Simulation-based End-to-End Learning Framework for Evidential Occupancy Grid Mapping**
-> ([arXiv](https://arxiv.org/abs/2102.12718))  
+> ([IEEE Xplore](https://ieeexplore.ieee.org/document/9575715), [arXiv](https://arxiv.org/abs/2102.12718))  
 >
 > [Raphael van Kempen](https://www.ika.rwth-aachen.de/en/institute/staff/raphael-van-kempen-msc.html), [Bastian Lampe](https://www.ika.rwth-aachen.de/en/institute/staff/bastian-lampe-m-sc.html), [Timo Woopen](https://www.ika.rwth-aachen.de/en/institute/management/timo-woopen-msc.html), and [Lutz Eckstein](https://www.ika.rwth-aachen.de/en/institute/management/univ-prof-dr-ing-lutz-eckstein.html)  
 > [Institute for Automotive Engineering (ika), RWTH Aachen University](https://www.ika.rwth-aachen.de/en/)
@@ -17,14 +17,13 @@ This repository provides the dataset as well as the training pipeline that was u
 We hope our paper, data and code can help in your research. If this is the case, please cite:
 
 ```
-@misc{vankempen2021simulationbased,
-      title={A Simulation-based End-to-End Learning Framework for Evidential Occupancy Grid Mapping}, 
-      author={Raphael van Kempen, Bastian Lampe, Timo Woopen and Lutz Eckstein},
-      year={2021},
-      eprint={2102.12718},
-      archivePrefix={arXiv},
-      primaryClass={cs.RO}
-}
+@INPROCEEDINGS{9575715,
+  author={van Kempen, Raphael and Lampe, Bastian and Woopen, Timo and Eckstein, Lutz},
+  booktitle={2021 IEEE Intelligent Vehicles Symposium (IV)}, 
+  title={A Simulation-based End-to-End Learning Framework for Evidential Occupancy Grid Mapping}, 
+  year={2021},
+  pages={934-939},
+  doi={10.1109/IV48863.2021.9575715}}
 ```
 
 ## Content
