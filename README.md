@@ -59,7 +59,7 @@ We provide all data that is required to reproduce the results in our paper. The 
   - 100 test samples
 - **Real-world input data** that was recorded with a *Velodyne VLP32C* lidar sensor during a ~9 minutes ride in an urban area (5.224 point clouds).
 
-We are very interested in the impact of our provided dataset. Please fill out the **[dataset request form](https://www.unicaragil.de/en/evilog)** and we will send you a download link that is valid for 24 hours.
+We are very interested in the impact of our provided dataset. Please send us a request including your name and organization to evilog@ika.rwth-aachen.de and we will send you a download link.
 
 _**Note**: Download size is approximately 6.8 GB, uncompressed size is approximately 11.8 GB._
 
